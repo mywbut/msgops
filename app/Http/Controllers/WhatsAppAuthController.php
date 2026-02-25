@@ -67,17 +67,53 @@ class WhatsAppAuthController extends Controller
             $tokenData = $response->json();
             $accessToken = $tokenData['access_token'];
 
-            // 2. We now have the token! Fetch the Phone Number IDs attached to this token.
-            // Using the token, we hit the /me/accounts endpoint to find their WABA
-            $accountsResponse = Http::withToken($accessToken)->get('https://graph.facebook.com/v18.0/me/accounts');
-            // ... (In a real scenario, you parse the business accounts and phone numbers here)
-            // For MVP Simulation, assuming they only connected one number:
+            // 2. We now have the token! Fetch the WABA ID granted during signup using the debug_token endpoint.
+            $appToken = env('META_APP_ID') . '|' . env('META_APP_SECRET');
+            $debugResponse = Http::get('https://graph.facebook.com/v18.0/debug_token', [
+                'input_token' => $accessToken,
+                'access_token' => $appToken,
+            ]);
 
-            // 3. Save to Supabase (Database Models)
-            // We use UUIDs, so this matches our previous schema mapping
-            $wabaId = 'MOCK_WABA_ID_FROM_META'; // Replace with parsed $accountsResponse data
-            $phoneNumberId = 'MOCK_PHONE_ID_FROM_META'; // Replace with parsed $accountsResponse data
+            if ($debugResponse->failed()) {
+                Log::error('Meta Debug Token Failed: ' . $debugResponse->body());
+                return response()->json(['success' => false, 'error' => 'Failed to verify token scopes.']);
+            }
 
+            $debugData = $debugResponse->json();
+            $wabaId = null;
+
+            if (isset($debugData['data']['granular_scopes'])) {
+                foreach ($debugData['data']['granular_scopes'] as $scope) {
+                    if ($scope['scope'] === 'whatsapp_business_messaging' && !empty($scope['target_ids'])) {
+                        $wabaId = $scope['target_ids'][0];
+                        break;
+                    }
+                }
+            }
+
+            if (!$wabaId) {
+                return response()->json(['success' => false, 'error' => 'No WhatsApp Business Account (WABA) was granted in the permissions.']);
+            }
+
+            // 3. Now that we have the WABA ID, we can query its phone numbers
+            $phonesResponse = Http::withToken($accessToken)
+                ->get("https://graph.facebook.com/v18.0/{$wabaId}/phone_numbers");
+
+            if ($phonesResponse->failed()) {
+                Log::error('Meta Fetch Phones Failed: ' . $phonesResponse->body());
+                return response()->json(['success' => false, 'error' => 'Failed to fetch WhatsApp Phone Numbers.']);
+            }
+
+            $phonesData = $phonesResponse->json();
+
+            if (empty($phonesData['data'])) {
+                return response()->json(['success' => false, 'error' => 'No phone numbers found in the connected WhatsApp Business Account.']);
+            }
+
+            // Grab the very first phone number attached to this WABA for the MVP
+            $phoneNumberId = $phonesData['data'][0]['id'];
+
+            // 4. Save to Supabase (Database Models)
             WhatsappConfig::updateOrCreate(
                 ['org_id' => $user->org_id],
                 [
