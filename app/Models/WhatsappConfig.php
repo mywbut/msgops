@@ -9,6 +9,8 @@ class WhatsappConfig extends Model
 {
     use HasUuids;
 
+    public $timestamps = false;
+
     protected $fillable = [
         'org_id',
         'phone_number_id',

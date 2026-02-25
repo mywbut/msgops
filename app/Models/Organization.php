@@ -9,6 +9,8 @@ class Organization extends Model
 {
     use HasUuids;
 
+    public $timestamps = false;
+
     protected $fillable = [
         'name',
         'plan_tier',
