@@ -1,5 +1,5 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
+import axios from 'axios';
 import { useEffect, useState } from 'react';
 
 export default function Connect() {
@@ -56,24 +56,19 @@ export default function Connect() {
         setStatus('Connecting WhatsApp... please wait.');
         setIsProcessing(true);
         try {
-            const res = await fetch('/whatsapp/exchange-token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                },
-                body: JSON.stringify({ code: code })
+            const res = await axios.post('/whatsapp/exchange-token', {
+                code: code
             });
 
-            const data = await res.json();
-            if (data.success) {
+            if (res.data.success) {
                 setStatus('Successfully connected your WhatsApp Business number!');
                 window.location.reload(); // Reload to show connected state
             } else {
-                setStatus('Failed: ' + (data.error || 'Unknown error'));
+                setStatus('Failed: ' + (res.data.error || 'Unknown error'));
             }
         } catch (err) {
-            setStatus('Network error occurred.');
+            console.error(err);
+            setStatus('Network error or server error occurred.');
         } finally {
             setIsProcessing(false);
         }
