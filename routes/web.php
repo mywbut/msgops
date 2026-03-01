@@ -36,9 +36,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // WhatsApp Connect Routes
+    // WhatsApp Connect Route
     Route::get('/whatsapp/connect', [WhatsAppAuthController::class, 'showConnectPage'])->name('whatsapp.connect');
-    Route::post('/whatsapp/exchange-token', [WhatsAppAuthController::class, 'exchangeToken'])->name('whatsapp.exchangeToken');
 });
 
 require __DIR__ . '/auth.php';

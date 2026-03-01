@@ -16,6 +16,10 @@ class WhatsAppAuthController extends Controller
      */
     public function showConnectPage(Request $request)
     {
+        if ($request->has('code') || $request->has('error')) {
+            return $this->exchangeToken($request);
+        }
+
         // Get the current user's organization.
         $user = $request->user();
         if (!$user->org_id) {
@@ -36,6 +40,8 @@ class WhatsAppAuthController extends Controller
             'metaConfigId' => env('META_CONFIG_ID', '1592135015238479'),
             'isConnected' => $config ? true : false,
             'phoneNumberId' => $config ? $config->phone_number_id : null,
+            'flashError' => session('error'),
+            'flashSuccess' => session('success'),
         ]);
     }
 
@@ -44,6 +50,11 @@ class WhatsAppAuthController extends Controller
      */
     public function exchangeToken(Request $request)
     {
+        if ($request->has('error')) {
+            Log::error('Meta OAuth Error: ' . $request->input('error_description', $request->input('error')));
+            return redirect()->route('whatsapp.connect')->with('error', 'Facebook Login failed: ' . $request->input('error_description', 'User cancelled or configuration error.'));
+        }
+
         $request->validate([
             'code' => 'required|string',
         ]);
@@ -61,7 +72,7 @@ class WhatsAppAuthController extends Controller
 
             if ($response->failed()) {
                 Log::error('Meta OAuth Exchange Failed: ' . $response->body());
-                return response()->json(['success' => false, 'error' => 'Failed to exchange token with Meta.']);
+                return redirect()->route('whatsapp.connect')->with('error', 'Failed to exchange token with Meta.');
             }
 
             $tokenData = $response->json();
@@ -76,7 +87,7 @@ class WhatsAppAuthController extends Controller
 
             if ($debugResponse->failed()) {
                 Log::error('Meta Debug Token Failed: ' . $debugResponse->body());
-                return response()->json(['success' => false, 'error' => 'Failed to verify token scopes.']);
+                return redirect()->route('whatsapp.connect')->with('error', 'Failed to verify token scopes.');
             }
 
             $debugData = $debugResponse->json();
@@ -92,7 +103,7 @@ class WhatsAppAuthController extends Controller
             }
 
             if (!$wabaId) {
-                return response()->json(['success' => false, 'error' => 'No WhatsApp Business Account (WABA) was granted in the permissions.']);
+                return redirect()->route('whatsapp.connect')->with('error', 'No WhatsApp Business Account (WABA) was granted in the permissions.');
             }
 
             // 3. Now that we have the WABA ID, we can query its phone numbers
@@ -101,13 +112,13 @@ class WhatsAppAuthController extends Controller
 
             if ($phonesResponse->failed()) {
                 Log::error('Meta Fetch Phones Failed: ' . $phonesResponse->body());
-                return response()->json(['success' => false, 'error' => 'Failed to fetch WhatsApp Phone Numbers.']);
+                return redirect()->route('whatsapp.connect')->with('error', 'Failed to fetch WhatsApp Phone Numbers.');
             }
 
             $phonesData = $phonesResponse->json();
 
             if (empty($phonesData['data'])) {
-                return response()->json(['success' => false, 'error' => 'No phone numbers found in the connected WhatsApp Business Account.']);
+                return redirect()->route('whatsapp.connect')->with('error', 'No phone numbers found in the connected WhatsApp Business Account.');
             }
 
             // Grab the very first phone number attached to this WABA for the MVP
@@ -122,12 +133,11 @@ class WhatsAppAuthController extends Controller
                     'access_token' => $accessToken,
                 ]
             );
-
-            return response()->json(['success' => true]);
+            return redirect()->route('whatsapp.connect')->with('success', 'Successfully connected your WhatsApp Business number!');
 
         } catch (\Exception $e) {
             Log::error('WhatsApp Connection Error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'error' => 'Server error occurred during connection.']);
+            return redirect()->route('whatsapp.connect')->with('error', 'Server error occurred during connection.');
         }
     }
 }

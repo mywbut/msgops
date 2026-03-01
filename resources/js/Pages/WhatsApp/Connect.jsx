@@ -1,78 +1,36 @@
-import { Head, router, usePage } from '@inertiajs/react';
-import axios from 'axios';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 export default function Connect() {
-    const { metaAppId, metaConfigId, isConnected, phoneNumberId } = usePage().props;
+    const { metaAppId, metaConfigId, isConnected, phoneNumberId, flashError, flashSuccess } = usePage().props;
     const [status, setStatus] = useState('');
-    const [isProcessing, setIsProcessing] = useState(false);
+    const [isError, setIsError] = useState(false);
 
     useEffect(() => {
-        // Load the Facebook SDK asynchronously
-        window.fbAsyncInit = function () {
-            window.FB.init({
-                appId: metaAppId,
-                autoLogAppEvents: true,
-                xfbml: true,
-                version: 'v18.0'
-            });
-            console.log("FB SDK Initialized!");
-        };
-
-        (function (d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) return;
-            js = d.createElement(s); js.id = id;
-            js.src = "https://connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
-    }, [metaAppId]);
+        if (flashError) {
+            setStatus(flashError);
+            setIsError(true);
+        } else if (flashSuccess) {
+            setStatus(flashSuccess);
+            setIsError(false);
+        }
+    }, [flashError, flashSuccess]);
 
     const launchWhatsAppSignup = () => {
-        setStatus('');
-        window.FB.login(function (response) {
-            console.log("FB Login Response:", response);
-            if (response.authResponse) {
-                const code = response.authResponse.code;
-                console.log("Received OAuth Code:", code);
-                // Send code to Laravel backend
-                exchangeCodeForToken(code);
-            } else {
-                setStatus('User cancelled login or did not fully authorize.');
-            }
-        }, {
+        setStatus('Redirecting to Facebook...');
+        setIsError(false);
+
+        const params = new URLSearchParams({
+            client_id: metaAppId,
             config_id: metaConfigId,
+            redirect_uri: window.location.origin + '/whatsapp/connect',
             response_type: 'code',
-            override_default_response_type: true,
             scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
-            extras: {
-                setup: {},
-                featureType: '',
-                sessionInfoVersion: '3'
-            }
+            state: 'token_' + Math.random().toString(36).substring(7)
         });
-    };
 
-    const exchangeCodeForToken = async (code) => {
-        setStatus('Connecting WhatsApp... please wait.');
-        setIsProcessing(true);
-        try {
-            const res = await axios.post('/whatsapp/exchange-token', {
-                code: code
-            });
-
-            if (res.data.success) {
-                setStatus('Successfully connected your WhatsApp Business number!');
-                window.location.reload(); // Reload to show connected state
-            } else {
-                setStatus('Failed: ' + (res.data.error || 'Unknown error'));
-            }
-        } catch (err) {
-            console.error(err);
-            setStatus('Network error or server error occurred.');
-        } finally {
-            setIsProcessing(false);
-        }
+        window.location.href = `https://www.facebook.com/dialog/oauth?${params.toString()}`;
     };
 
     return (
@@ -105,7 +63,6 @@ export default function Connect() {
 
                                     <button
                                         onClick={launchWhatsAppSignup}
-                                        disabled={isProcessing}
                                         className="bg-[#1877F2] hover:bg-[#0c63d4] text-white font-bold py-3 px-6 rounded shadow transition duration-200 w-full flex items-center justify-center gap-2 disabled:opacity-50"
                                     >
                                         <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
@@ -113,7 +70,7 @@ export default function Connect() {
                                     </button>
 
                                     {status && (
-                                        <div className={`mt-4 p-4 rounded ${status.includes('Failed') || status.includes('error') ? 'bg-red-900/50 text-red-200' : 'bg-blue-900/50 text-blue-200'}`}>
+                                        <div className={`mt-4 p-4 rounded ${isError ? 'bg-red-900/50 text-red-200' : 'bg-blue-900/50 text-blue-200'}`}>
                                             {status}
                                         </div>
                                     )}
