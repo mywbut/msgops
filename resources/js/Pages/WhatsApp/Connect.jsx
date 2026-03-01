@@ -44,10 +44,11 @@ export default function Connect() {
             config_id: metaConfigId,
             response_type: 'code',
             override_default_response_type: true,
+            scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
             extras: {
-                setup_widget_configuration: {
-                    workspace_type: 'API'
-                }
+                setup: {},
+                featureType: '',
+                sessionInfoVersion: '3'
             }
         });
     };
