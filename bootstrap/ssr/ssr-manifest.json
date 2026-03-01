@@ -1,0 +1,95 @@
+{
+  "node_modules/laravel-vite-plugin/inertia-helpers/index.js": [],
+  "resources/js/Components/ApplicationLogo.jsx": [
+    "/build/assets/ApplicationLogo-xMpxFOcX.js"
+  ],
+  "resources/js/Components/Checkbox.jsx": [
+    "/build/assets/Login-CBCK4JoK.js"
+  ],
+  "resources/js/Components/DangerButton.jsx": [
+    "/build/assets/DeleteUserForm-DasR_Sgc.js"
+  ],
+  "resources/js/Components/Dropdown.jsx": [
+    "/build/assets/AuthenticatedLayout-BRhPzWka.js"
+  ],
+  "resources/js/Components/InputError.jsx": [
+    "/build/assets/TextInput-DmkubRXE.js"
+  ],
+  "resources/js/Components/InputLabel.jsx": [
+    "/build/assets/InputLabel-DDs2XNYP.js"
+  ],
+  "resources/js/Components/Modal.jsx": [
+    "/build/assets/DeleteUserForm-DasR_Sgc.js"
+  ],
+  "resources/js/Components/NavLink.jsx": [
+    "/build/assets/AuthenticatedLayout-BRhPzWka.js"
+  ],
+  "resources/js/Components/PrimaryButton.jsx": [
+    "/build/assets/PrimaryButton-DDF1xnxF.js"
+  ],
+  "resources/js/Components/ResponsiveNavLink.jsx": [
+    "/build/assets/AuthenticatedLayout-BRhPzWka.js"
+  ],
+  "resources/js/Components/SecondaryButton.jsx": [
+    "/build/assets/DeleteUserForm-DasR_Sgc.js"
+  ],
+  "resources/js/Components/TextInput.jsx": [
+    "/build/assets/TextInput-DmkubRXE.js"
+  ],
+  "resources/js/Layouts/AuthenticatedLayout.jsx": [
+    "/build/assets/AuthenticatedLayout-BRhPzWka.js"
+  ],
+  "resources/js/Layouts/GuestLayout.jsx": [
+    "/build/assets/GuestLayout-XMlsEBkD.js"
+  ],
+  "resources/js/Pages/Auth/ConfirmPassword.jsx": [
+    "/build/assets/ConfirmPassword-C5z4vo2G.js"
+  ],
+  "resources/js/Pages/Auth/ForgotPassword.jsx": [
+    "/build/assets/ForgotPassword-DsEPxP0K.js"
+  ],
+  "resources/js/Pages/Auth/Login.jsx": [
+    "/build/assets/Login-CBCK4JoK.js"
+  ],
+  "resources/js/Pages/Auth/Register.jsx": [
+    "/build/assets/Register-DZlS1StF.js"
+  ],
+  "resources/js/Pages/Auth/ResetPassword.jsx": [
+    "/build/assets/ResetPassword-FE_-TZW-.js"
+  ],
+  "resources/js/Pages/Auth/VerifyEmail.jsx": [
+    "/build/assets/VerifyEmail-V-5uwRBv.js"
+  ],
+  "resources/js/Pages/Dashboard.jsx": [
+    "/build/assets/Dashboard-ChJ579a5.js"
+  ],
+  "resources/js/Pages/DataDeletion.jsx": [
+    "/build/assets/DataDeletion-BiTlfrXi.js"
+  ],
+  "resources/js/Pages/PrivacyPolicy.jsx": [
+    "/build/assets/PrivacyPolicy-lpRpnXad.js"
+  ],
+  "resources/js/Pages/Profile/Edit.jsx": [
+    "/build/assets/Edit-mPHO177t.js"
+  ],
+  "resources/js/Pages/Profile/Partials/DeleteUserForm.jsx": [
+    "/build/assets/DeleteUserForm-DasR_Sgc.js"
+  ],
+  "resources/js/Pages/Profile/Partials/UpdatePasswordForm.jsx": [
+    "/build/assets/UpdatePasswordForm-CwhF3nns.js"
+  ],
+  "resources/js/Pages/Profile/Partials/UpdateProfileInformationForm.jsx": [
+    "/build/assets/UpdateProfileInformationForm-GzmQdpBg.js"
+  ],
+  "resources/js/Pages/TermsOfService.jsx": [
+    "/build/assets/TermsOfService-C6JxmEZf.js"
+  ],
+  "resources/js/Pages/Welcome.jsx": [
+    "/build/assets/Welcome-wbQb3jwF.js"
+  ],
+  "resources/js/Pages/WhatsApp/Connect.jsx": [
+    "/build/assets/Connect-GZ4QLOel.js"
+  ],
+  "resources/js/ssr.jsx": [],
+  "vendor/tightenco/ziggy/dist/index.js": []
+}
