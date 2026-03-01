@@ -32,8 +32,8 @@ class WhatsAppAuthController extends Controller
         $config = WhatsappConfig::where('org_id', $user->org_id)->first();
 
         return Inertia::render('WhatsApp/Connect', [
-            'metaAppId' => env('META_APP_ID', 'YOUR_META_APP_ID_HERE'),
-            'metaConfigId' => env('META_CONFIG_ID', 'YOUR_META_CONFIG_ID_HERE'),
+            'metaAppId' => env('META_APP_ID', '911152584947331'),
+            'metaConfigId' => env('META_CONFIG_ID', '1592135015238479'),
             'isConnected' => $config ? true : false,
             'phoneNumberId' => $config ? $config->phone_number_id : null,
         ]);
