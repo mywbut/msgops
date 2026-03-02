@@ -21,16 +21,12 @@ export default function Connect() {
         setStatus('Redirecting to Facebook...');
         setIsError(false);
 
-        const params = new URLSearchParams({
-            client_id: metaAppId,
-            config_id: metaConfigId,
-            redirect_uri: window.location.origin + '/whatsapp/connect',
-            response_type: 'code',
-            scope: 'business_management,whatsapp_business_management,whatsapp_business_messaging',
-            state: 'token_' + Math.random().toString(36).substring(7)
-        });
+        // Build the query string manually to ensure commas in the scope are not URL-encoded
+        const stateStr = 'token_' + Math.random().toString(36).substring(7);
+        const redirectUri = encodeURIComponent(window.location.origin + '/whatsapp/connect');
+        const qs = `client_id=${metaAppId}&config_id=${metaConfigId}&redirect_uri=${redirectUri}&response_type=code&state=${stateStr}&scope=business_management,whatsapp_business_management,whatsapp_business_messaging`;
 
-        window.location.href = `https://www.facebook.com/dialog/oauth?${params.toString()}`;
+        window.location.href = `https://www.facebook.com/dialog/oauth?${qs}`;
     };
 
     return (
