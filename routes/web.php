@@ -38,6 +38,22 @@ Route::middleware('auth')->group(function () {
 
     // WhatsApp Connect Route
     Route::get('/whatsapp/connect', [WhatsAppAuthController::class, 'showConnectPage'])->name('whatsapp.connect');
+
+    // WhatsApp Mockup Routes for App Review Screencast
+    Route::get('/whatsapp/send', function () {
+        $config = \App\Models\WhatsappConfig::where('org_id', request()->user()->org_id)->first();
+        return Inertia::render('WhatsApp/SendMessage', ['isConnected' => $config ? true : false]);
+    })->name('whatsapp.send');
+
+    Route::get('/whatsapp/logs', function () {
+        $config = \App\Models\WhatsappConfig::where('org_id', request()->user()->org_id)->first();
+        return Inertia::render('WhatsApp/MessageLogs', ['isConnected' => $config ? true : false]);
+    })->name('whatsapp.logs');
+
+    Route::get('/whatsapp/automation', function () {
+        $config = \App\Models\WhatsappConfig::where('org_id', request()->user()->org_id)->first();
+        return Inertia::render('WhatsApp/Automation', ['isConnected' => $config ? true : false]);
+    })->name('whatsapp.automation');
 });
 
 require __DIR__ . '/auth.php';

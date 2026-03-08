@@ -10,7 +10,7 @@
     "/build/assets/DeleteUserForm-DasR_Sgc.js"
   ],
   "resources/js/Components/Dropdown.jsx": [
-    "/build/assets/AuthenticatedLayout-BRhPzWka.js"
+    "/build/assets/AuthenticatedLayout-DK4QHw_4.js"
   ],
   "resources/js/Components/InputError.jsx": [
     "/build/assets/TextInput-DmkubRXE.js"
@@ -22,13 +22,13 @@
     "/build/assets/DeleteUserForm-DasR_Sgc.js"
   ],
   "resources/js/Components/NavLink.jsx": [
-    "/build/assets/AuthenticatedLayout-BRhPzWka.js"
+    "/build/assets/AuthenticatedLayout-DK4QHw_4.js"
   ],
   "resources/js/Components/PrimaryButton.jsx": [
     "/build/assets/PrimaryButton-DDF1xnxF.js"
   ],
   "resources/js/Components/ResponsiveNavLink.jsx": [
-    "/build/assets/AuthenticatedLayout-BRhPzWka.js"
+    "/build/assets/AuthenticatedLayout-DK4QHw_4.js"
   ],
   "resources/js/Components/SecondaryButton.jsx": [
     "/build/assets/DeleteUserForm-DasR_Sgc.js"
@@ -37,7 +37,7 @@
     "/build/assets/TextInput-DmkubRXE.js"
   ],
   "resources/js/Layouts/AuthenticatedLayout.jsx": [
-    "/build/assets/AuthenticatedLayout-BRhPzWka.js"
+    "/build/assets/AuthenticatedLayout-DK4QHw_4.js"
   ],
   "resources/js/Layouts/GuestLayout.jsx": [
     "/build/assets/GuestLayout-XMlsEBkD.js"
@@ -61,7 +61,7 @@
     "/build/assets/VerifyEmail-V-5uwRBv.js"
   ],
   "resources/js/Pages/Dashboard.jsx": [
-    "/build/assets/Dashboard-ChJ579a5.js"
+    "/build/assets/Dashboard-DPTbbwIr.js"
   ],
   "resources/js/Pages/DataDeletion.jsx": [
     "/build/assets/DataDeletion-BiTlfrXi.js"
@@ -70,7 +70,7 @@
     "/build/assets/PrivacyPolicy-lpRpnXad.js"
   ],
   "resources/js/Pages/Profile/Edit.jsx": [
-    "/build/assets/Edit-mPHO177t.js"
+    "/build/assets/Edit-BSxX3ceS.js"
   ],
   "resources/js/Pages/Profile/Partials/DeleteUserForm.jsx": [
     "/build/assets/DeleteUserForm-DasR_Sgc.js"
@@ -87,8 +87,17 @@
   "resources/js/Pages/Welcome.jsx": [
     "/build/assets/Welcome-wbQb3jwF.js"
   ],
+  "resources/js/Pages/WhatsApp/Automation.jsx": [
+    "/build/assets/Automation-CYg3A2pv.js"
+  ],
   "resources/js/Pages/WhatsApp/Connect.jsx": [
-    "/build/assets/Connect-DAQyViEK.js"
+    "/build/assets/Connect-Dk6hYpIS.js"
+  ],
+  "resources/js/Pages/WhatsApp/MessageLogs.jsx": [
+    "/build/assets/MessageLogs-C8DMBSWX.js"
+  ],
+  "resources/js/Pages/WhatsApp/SendMessage.jsx": [
+    "/build/assets/SendMessage-B3AbibVI.js"
   ],
   "resources/js/ssr.jsx": [],
   "vendor/tightenco/ziggy/dist/index.js": []
