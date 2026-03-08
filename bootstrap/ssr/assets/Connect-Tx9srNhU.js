@@ -22,8 +22,8 @@ function Connect() {
     setIsError(false);
     const stateStr = "token_" + Math.random().toString(36).substring(7);
     const redirectUri = encodeURIComponent(window.location.origin + "/whatsapp/connect");
-    const qs = `client_id=${metaAppId}&redirect_uri=${redirectUri}&response_type=code&state=${stateStr}&scope=business_management,whatsapp_business_management,whatsapp_business_messaging`;
-    window.location.href = `https://www.facebook.com/dialog/oauth?${qs}`;
+    const qs = `client_id=${metaAppId}&redirect_uri=${redirectUri}&response_type=code&config_id=${metaConfigId}&state=${stateStr}&override_default_response_type=true`;
+    window.location.href = `https://www.facebook.com/v18.0/dialog/oauth?${qs}`;
   };
   return /* @__PURE__ */ jsxs(
     AuthenticatedLayout,
