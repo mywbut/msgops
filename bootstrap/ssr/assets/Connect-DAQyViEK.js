@@ -52,6 +52,20 @@ function Connect() {
               ]
             }
           ),
+          /* @__PURE__ */ jsxs("div", { className: "mt-8 text-left bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded p-4 text-sm text-yellow-800 dark:text-yellow-200", children: [
+            /* @__PURE__ */ jsx("p", { className: "font-semibold mb-2", children: "Note for App Reviewers:" }),
+            /* @__PURE__ */ jsxs("p", { className: "mb-2", children: [
+              "During App Review, the Facebook OAuth popup may show an error because the permissions ",
+              /* @__PURE__ */ jsx("code", { children: "whatsapp_business_messaging" }),
+              ", ",
+              /* @__PURE__ */ jsx("code", { children: "whatsapp_business_management" }),
+              " and ",
+              /* @__PURE__ */ jsx("code", { children: "business_management" }),
+              " are still pending approval."
+            ] }),
+            /* @__PURE__ */ jsx("p", { className: "mb-2", children: 'Once approved, the "Continue with Facebook" button launches the official Meta WhatsApp Embedded Signup flow where the user grants permissions and connects their WhatsApp Business Account.' }),
+            /* @__PURE__ */ jsx("p", { children: "The app then stores the WhatsApp Business Account ID and access token and enables messaging functionality inside MsgOps." })
+          ] }),
           status && /* @__PURE__ */ jsx("div", { className: `mt-4 p-4 rounded ${isError ? "bg-red-900/50 text-red-200" : "bg-blue-900/50 text-blue-200"}`, children: status })
         ] }) }) }) }) })
       ]
