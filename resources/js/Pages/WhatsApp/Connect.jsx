@@ -73,19 +73,6 @@ export default function Connect() {
                                         Continue with Facebook
                                     </button>
 
-                                    <div className="mt-8 text-left bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded p-4 text-sm text-yellow-800 dark:text-yellow-200">
-                                        <p className="font-semibold mb-2">Note for App Reviewers:</p>
-                                        <p className="mb-2">
-                                            During App Review, the Facebook OAuth popup may show an error because the permissions <code>whatsapp_business_messaging</code>, <code>whatsapp_business_management</code> and <code>business_management</code> are still pending approval.
-                                        </p>
-                                        <p className="mb-2">
-                                            Once approved, the "Continue with Facebook" button launches the official Meta WhatsApp Embedded Signup flow where the user grants permissions and connects their WhatsApp Business Account.
-                                        </p>
-                                        <p>
-                                            The app then stores the WhatsApp Business Account ID and access token and enables messaging functionality inside MsgOps.
-                                        </p>
-                                    </div>
-
                                     {status && (
                                         <div className={`mt-4 p-4 rounded ${isError ? 'bg-red-900/50 text-red-200' : 'bg-blue-900/50 text-blue-200'}`}>
                                             {status}
