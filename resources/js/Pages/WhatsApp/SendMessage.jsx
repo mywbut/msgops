@@ -1,15 +1,40 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import axios from 'axios';
 
 export default function SendMessage() {
     const { isConnected } = usePage().props;
     const [status, setStatus] = useState('');
+    const [error, setError] = useState('');
+    const [sending, setSending] = useState(false);
+    
+    const [recipient, setRecipient] = useState('');
+    const [template, setTemplate] = useState('');
+    const [message, setMessage] = useState('');
 
-    const handleSend = (e) => {
+    const handleSend = async (e) => {
         e.preventDefault();
-        setStatus('Message added to queue (Demo Mode)');
-        setTimeout(() => setStatus(''), 3000);
+        setSending(true);
+        setStatus('');
+        setError('');
+
+        try {
+            const response = await axios.post('/whatsapp/send-message', {
+                recipient,
+                template,
+                message
+            });
+
+            setStatus('Message successfully sent to Meta API!');
+            setTimeout(() => setStatus(''), 5000);
+            setMessage('');
+        } catch (err) {
+            setError(err.response?.data?.error || 'An error occurred while sending the message.');
+            setTimeout(() => setError(''), 5000);
+        } finally {
+            setSending(false);
+        }
     };
 
     return (
@@ -57,8 +82,10 @@ export default function SendMessage() {
                                         id="recipient"
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
                                         placeholder="+1234567890"
-                                        disabled={!isConnected}
+                                        disabled={!isConnected || sending}
                                         required
+                                        value={recipient}
+                                        onChange={(e) => setRecipient(e.target.value)}
                                     />
                                 </div>
 
@@ -67,7 +94,9 @@ export default function SendMessage() {
                                     <select
                                         id="template"
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                        disabled={!isConnected}
+                                        disabled={!isConnected || sending}
+                                        value={template}
+                                        onChange={(e) => setTemplate(e.target.value)}
                                     >
                                         <option value="">-- Select Template --</option>
                                         <option value="welcome">Welcome Message</option>
@@ -83,8 +112,10 @@ export default function SendMessage() {
                                         rows={4}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
                                         placeholder="Type your message here..."
-                                        disabled={!isConnected}
+                                        disabled={!isConnected || sending}
                                         required
+                                        value={message}
+                                        onChange={(e) => setMessage(e.target.value)}
                                     />
                                     <p className="mt-2 text-sm text-gray-500">Variables like ((name)) will be replaced automatically.</p>
                                 </div>
@@ -92,12 +123,13 @@ export default function SendMessage() {
                                 <div className="flex items-center gap-4">
                                     <button
                                         type="submit"
-                                        disabled={!isConnected}
+                                        disabled={!isConnected || sending}
                                         className="bg-[#1877F2] hover:bg-[#0c63d4] text-white font-bold py-2 px-6 rounded shadow transition duration-200 disabled:opacity-50"
                                     >
-                                        Send Message
+                                        {sending ? 'Sending...' : 'Send Message'}
                                     </button>
                                     {status && <span className="text-sm text-green-600 dark:text-green-400">{status}</span>}
+                                    {error && <span className="text-sm text-red-600 dark:text-red-400">{error}</span>}
                                 </div>
                             </form>
 

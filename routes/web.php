@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/whatsapp/connect', [WhatsAppAuthController::class, 'showConnectPage'])->name('whatsapp.connect');
 
     // WhatsApp Mockup Routes for App Review Screencast
+    Route::post('/whatsapp/send-message', [\App\Http\Controllers\WhatsAppController::class, 'sendMessage'])->name('whatsapp.send-message');
     Route::get('/whatsapp/send', function () {
         $config = \App\Models\WhatsappConfig::where('org_id', request()->user()->org_id)->first();
         return Inertia::render('WhatsApp/SendMessage', ['isConnected' => $config ? true : false]);
