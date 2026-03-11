@@ -99,7 +99,7 @@ class WhatsAppAuthController extends Controller
 
             if (isset($debugData['data']['granular_scopes'])) {
                 foreach ($debugData['data']['granular_scopes'] as $scope) {
-                    if ($scope['scope'] === 'whatsapp_business_messaging' && !empty($scope['target_ids'])) {
+                    if (in_array($scope['scope'], ['whatsapp_business_messaging', 'whatsapp_business_management']) && !empty($scope['target_ids'])) {
                         $wabaId = $scope['target_ids'][0];
                         break;
                     }
