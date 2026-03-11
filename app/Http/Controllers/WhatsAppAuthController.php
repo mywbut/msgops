@@ -129,7 +129,20 @@ class WhatsAppAuthController extends Controller
             // Grab the very first phone number attached to this WABA for the MVP
             $phoneNumberId = $phonesData['data'][0]['id'];
 
-            // 4. Save to Supabase (Database Models)
+            // 4. Register the phone number for the Cloud API.
+            // Meta requires newly linked phone numbers to be registered with a 6-digit PIN.
+            $registerResponse = Http::withToken($accessToken)
+                ->post("https://graph.facebook.com/v18.0/{$phoneNumberId}/register", [
+                    'messaging_product' => 'whatsapp',
+                    'pin' => '123456'
+                ]);
+
+            if ($registerResponse->failed()) {
+                Log::error('Meta Register Phone Failed: ' . json_encode($registerResponse->json()));
+                // We don't abort the connection entirely since test numbers might throw "already registered"
+            }
+
+            // 5. Save to Supabase (Database Models)
             WhatsappConfig::updateOrCreate(
                 ['org_id' => $user->org_id],
                 [
