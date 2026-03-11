@@ -66,6 +66,8 @@ class WhatsAppAuthController extends Controller
             // 1. Exchange the code for an Access Token
             $response = Http::get('https://graph.facebook.com/v18.0/oauth/access_token', [
                 'client_id' => env('META_APP_ID'),
+                'client_redirect_uri' => route('whatsapp.connect'),
+                'redirect_uri' => route('whatsapp.connect'),
                 'client_secret' => env('META_APP_SECRET'),
                 'code' => $code,
             ]);
