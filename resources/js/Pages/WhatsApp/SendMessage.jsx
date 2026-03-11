@@ -36,6 +36,21 @@ export default function SendMessage() {
 
                             <form onSubmit={handleSend} className="space-y-6">
                                 <div>
+                                    <label htmlFor="sender" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sender WhatsApp Number (Asset)</label>
+                                    <select
+                                        id="sender"
+                                        className="mt-1 mb-6 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 bg-gray-50 dark:bg-gray-800"
+                                        disabled={!isConnected}
+                                    >
+                                        {isConnected ? (
+                                            <option value="connected">Connected WhatsApp Business Account</option>
+                                        ) : (
+                                            <option value="">No Account Connected</option>
+                                        )}
+                                    </select>
+                                </div>
+
+                                <div>
                                     <label htmlFor="recipient" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Recipient Phone Number (with country code)</label>
                                     <input
                                         type="tel"
