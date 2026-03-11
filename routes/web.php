@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
 
     // WhatsApp Connect Route
     Route::get('/whatsapp/connect', [WhatsAppAuthController::class, 'showConnectPage'])->name('whatsapp.connect');
+    Route::delete('/whatsapp/disconnect', [WhatsAppAuthController::class, 'disconnect'])->name('whatsapp.disconnect');
 
     // WhatsApp Mockup Routes for App Review Screencast
     Route::post('/whatsapp/send-message', [\App\Http\Controllers\WhatsAppController::class, 'sendMessage'])->name('whatsapp.send-message');

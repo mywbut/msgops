@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 export default function Connect() {
@@ -49,7 +49,16 @@ export default function Connect() {
                                         <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     </div>
                                     <h3 className="text-2xl font-bold mb-2">WhatsApp Connected!</h3>
-                                    <p className="text-gray-400">Your organization is currently bound to Phone Number ID: <strong>{phoneNumberId}</strong></p>
+                                    <p className="text-gray-400 mb-8">Your organization is currently bound to Phone Number ID: <strong>{phoneNumberId}</strong></p>
+                                    
+                                    <Link
+                                        href={route('whatsapp.disconnect')}
+                                        method="delete"
+                                        as="button"
+                                        className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded shadow transition duration-200"
+                                    >
+                                        Disconnect Account
+                                    </Link>
                                 </div>
                             ) : (
                                 <div className="max-w-md mx-auto text-center py-8">

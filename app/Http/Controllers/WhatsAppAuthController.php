@@ -158,4 +158,19 @@ class WhatsAppAuthController extends Controller
             return redirect()->route('whatsapp.connect')->with('error', 'Server error occurred during connection.');
         }
     }
+
+    /**
+     * Disconnect the WhatsApp Business Account.
+     */
+    public function disconnect(Request $request)
+    {
+        $user = $request->user();
+        
+        $config = WhatsappConfig::where('org_id', $user->org_id)->first();
+        if ($config) {
+            $config->delete();
+        }
+
+        return redirect()->route('whatsapp.connect')->with('success', 'WhatsApp account disconnected successfully.');
+    }
 }
