@@ -95,6 +95,8 @@ class WhatsAppAuthController extends Controller
             $debugData = $debugResponse->json();
             $wabaId = null;
 
+            Log::info('Debug Data: ' . json_encode($debugData));
+
             if (isset($debugData['data']['granular_scopes'])) {
                 foreach ($debugData['data']['granular_scopes'] as $scope) {
                     if ($scope['scope'] === 'whatsapp_business_messaging' && !empty($scope['target_ids'])) {
@@ -105,6 +107,7 @@ class WhatsAppAuthController extends Controller
             }
 
             if (!$wabaId) {
+                Log::error('WABA ID not found in debug token data.');
                 return redirect()->route('whatsapp.connect')->with('error', 'No WhatsApp Business Account (WABA) was granted in the permissions.');
             }
 
