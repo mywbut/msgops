@@ -49,14 +49,21 @@ class WhatsAppController extends Controller
                 ]
             ];
 
-            $response = Http::withToken($config->access_token)
-                ->post("https://graph.facebook.com/v18.0/{$config->phone_number_id}/messages", $payload);
+            // --- TEMPORARY CREDENTIALS FOR META APP REVIEW SCREENCAST ---
+            // These hardcoded values bypass the unapproved App permissions.
+            // Replace these with dynamic $config variables once the app is approved!
+            $screencast_phone_number_id = "115710678303307";
+            $screencast_access_token = "EAAM8sD4pdoMBQ9G0hyo4f9Yu4dc920VLT9Ih5hFszMWnwcusAZCxlDRbZAtNs7zch0bX3CnCPRmLEgHHURIt5VzDl5GS3CZAJXpN7XtAQqofjIPPNsIaMOibzChyTkIePZCbAoEsZBMx6M7rxu81s0AlMcAD4TxhRsh4MAAlssoQ0wHt1gbuooobhabOfqqHIZA2z3ocsYKfzNVTEsDyxHYnaEdBZB5o4o1NEM5pFXY21kZC7sWBHXvd8L9qBuZA5mfXinJMZBZBjKUof8KllzEIjD5mAZDZD";
+
+            $response = Http::withToken($screencast_access_token)
+                ->post("https://graph.facebook.com/v18.0/{$screencast_phone_number_id}/messages", $payload);
 
             if ($response->failed()) {
                 Log::error('Send Message Failed: ' . $response->body());
                 return response()->json([
                     'error' => 'Failed to send message via Meta API.',
-                    'details' => $response->json()
+                    // Include the exact error string so the frontend displays it for the user
+                    'details' => json_decode($response->body(), true)['error']['message'] ?? $response->body()
                 ], $response->status());
             }
 
