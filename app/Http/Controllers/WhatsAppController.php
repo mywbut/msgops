@@ -40,18 +40,31 @@ class WhatsAppController extends Controller
 
             // --- TEMPORARY CREDENTIALS FOR META APP REVIEW SCREENCAST ---
             // Unapproved numbers can ONLY send pre-approved templates or reply within 24 hours.
-            // Free-form text is silently dropped. We must send the "hello_world" test template.
-            $payload = [
-                'messaging_product' => 'whatsapp',
-                'to' => $recipient,
-                'type' => 'template',
-                'template' => [
-                    'name' => 'hello_world',
-                    'language' => [
-                        'code' => 'en_US'
+            // If the user selected the Meta Test Template, send that. Otherwise, send free-form text 
+            // (Note: free-form text will be silently dropped by Meta unless the recipient replied first).
+
+            if ($request->input('template') === 'hello_world') {
+                $payload = [
+                    'messaging_product' => 'whatsapp',
+                    'to' => $recipient,
+                    'type' => 'template',
+                    'template' => [
+                        'name' => 'hello_world',
+                        'language' => ['code' => 'en_US']
                     ]
-                ]
-            ];
+                ];
+            } else {
+                $payload = [
+                    'messaging_product' => 'whatsapp',
+                    'recipient_type' => 'individual',
+                    'to' => $recipient,
+                    'type' => 'text',
+                    'text' => [
+                        'preview_url' => false,
+                        'body' => $messageBody
+                    ]
+                ];
+            }
 
             // --- TEMPORARY CREDENTIALS FOR META APP REVIEW SCREENCAST ---
             // These hardcoded values bypass the unapproved App permissions.

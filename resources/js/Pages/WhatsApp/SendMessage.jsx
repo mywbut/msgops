@@ -96,9 +96,18 @@ export default function SendMessage() {
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
                                         disabled={!isConnected || sending}
                                         value={template}
-                                        onChange={(e) => setTemplate(e.target.value)}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setTemplate(val);
+                                            if (val === 'hello_world') {
+                                                setMessage('Welcome and congratulations!! This message demonstrates your ability to send a WhatsApp message notification from the Cloud API, hosted by Meta. Thank you for taking the time to test with us.');
+                                            } else {
+                                                setMessage('');
+                                            }
+                                        }}
                                     >
-                                        <option value="">-- Select Template --</option>
+                                        <option value="">-- No Template (Free-form Text) --</option>
+                                        <option value="hello_world">Meta Test Template (hello_world)</option>
                                         <option value="welcome">Welcome Message</option>
                                         <option value="appointment">Appointment Reminder</option>
                                         <option value="update">Order Update</option>
@@ -110,9 +119,9 @@ export default function SendMessage() {
                                     <textarea
                                         id="message"
                                         rows={4}
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+                                        className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 ${template ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
                                         placeholder="Type your message here..."
-                                        disabled={!isConnected || sending}
+                                        disabled={!isConnected || sending || template !== ''}
                                         required
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
