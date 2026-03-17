@@ -38,14 +38,18 @@ class WhatsAppController extends Controller
             // For this screencast, we will attempt to send a free-form message. 
             // If it fails because the window is closed, they need to reply to the business number first.
 
+            // --- TEMPORARY CREDENTIALS FOR META APP REVIEW SCREENCAST ---
+            // Unapproved numbers can ONLY send pre-approved templates or reply within 24 hours.
+            // Free-form text is silently dropped. We must send the "hello_world" test template.
             $payload = [
                 'messaging_product' => 'whatsapp',
-                'recipient_type' => 'individual',
                 'to' => $recipient,
-                'type' => 'text',
-                'text' => [
-                    'preview_url' => false,
-                    'body' => $messageBody
+                'type' => 'template',
+                'template' => [
+                    'name' => 'hello_world',
+                    'language' => [
+                        'code' => 'en_US'
+                    ]
                 ]
             ];
 
@@ -66,6 +70,8 @@ class WhatsAppController extends Controller
                     'details' => json_decode($response->body(), true)['error']['message'] ?? $response->body()
                 ], $response->status());
             }
+
+            Log::info("Meta Success Payload: " . json_encode($payload) . " || Response: " . $response->body());
 
             return response()->json([
                 'success' => true,
