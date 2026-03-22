@@ -35,11 +35,67 @@ class WhatsAppAuthController extends Controller
         // Check if they are already connected
         $config = WhatsappConfig::where('org_id', $user->org_id)->first();
 
+        // Fetch extra info if connected
+        $businessName = null;
+        $businessId = null;
+        $wabaName = null;
+        $wabaId = null;
+        $phoneNumber = null;
+        $phoneStatus = null;
+        
+        if ($config && $config->access_token && $config->waba_id) {
+            try {
+                $wabaId = $config->waba_id;
+                
+                // Fetch WABA and Business Info
+                $wabaResponse = Http::withToken($config->access_token)
+                    ->get("https://graph.facebook.com/v18.0/{$wabaId}?fields=name,business");
+                
+                if ($wabaResponse->successful()) {
+                    $wabaData = $wabaResponse->json();
+                    $wabaName = $wabaData['name'] ?? null;
+                    if (isset($wabaData['business'])) {
+                        $businessId = $wabaData['business']['id'] ?? null;
+                        $businessName = $wabaData['business']['name'] ?? null;
+                    }
+                }
+
+                // If business info isn't returned (permission issues), fallback to WABA name
+                if (!$businessName && $wabaName) {
+                    $businessName = $wabaName;
+                }
+
+                // Fetch Phone Number Info
+                if ($config->phone_number_id) {
+                    $phoneResponse = Http::withToken($config->access_token)
+                        ->get("https://graph.facebook.com/v18.0/{$config->phone_number_id}?fields=display_phone_number,name_status");
+
+                    if ($phoneResponse->successful()) {
+                        $phoneData = $phoneResponse->json();
+                        $phoneNumber = $phoneData['display_phone_number'] ?? null;
+                        $phoneStatus = $phoneData['name_status'] ?? null; 
+                        
+                        if (strtolower($phoneStatus) === 'approved') {
+                            $phoneStatus = 'Active';
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error('Failed to fetch WhatsApp Business details: ' . $e->getMessage());
+            }
+        }
+
         return Inertia::render('WhatsApp/Connect', [
             'metaAppId' => env('META_APP_ID', '911152584947331'),
             'metaConfigId' => env('META_CONFIG_ID', '1592135015238479'),
             'isConnected' => $config ? true : false,
             'phoneNumberId' => $config ? $config->phone_number_id : null,
+            'businessName' => $businessName ?? 'N/A',
+            'businessId' => $businessId ?? 'N/A',
+            'wabaName' => $wabaName ?? 'N/A',
+            'wabaId' => $wabaId ?? 'N/A',
+            'phoneNumber' => $phoneNumber ?? 'N/A',
+            'phoneStatus' => $phoneStatus ?? 'Active',
             'flashError' => session('error'),
             'flashSuccess' => session('success'),
         ]);

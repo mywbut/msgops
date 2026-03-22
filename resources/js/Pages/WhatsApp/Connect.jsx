@@ -3,7 +3,11 @@ import { Head, usePage, Link } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 export default function Connect() {
-    const { metaAppId, metaConfigId, isConnected, phoneNumberId, flashError, flashSuccess } = usePage().props;
+    const { 
+        metaAppId, metaConfigId, isConnected, phoneNumberId, 
+        businessName, businessId, wabaName, wabaId, phoneNumber, phoneStatus,
+        flashError, flashSuccess 
+    } = usePage().props;
     const [status, setStatus] = useState('');
     const [isError, setIsError] = useState(false);
 
@@ -48,8 +52,34 @@ export default function Connect() {
                                     <div className="text-green-500 mb-4">
                                         <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     </div>
-                                    <h3 className="text-2xl font-bold mb-2">WhatsApp Connected!</h3>
-                                    <p className="text-gray-400 mb-8">Your organization is currently bound to Phone Number ID: <strong>{phoneNumberId}</strong></p>
+                                    <h3 className="text-2xl font-bold mb-6">WhatsApp Connected!</h3>
+                                    
+                                    <div className="text-left bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 mb-8 max-w-md mx-auto space-y-6">
+                                        <div>
+                                            <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2 border-b border-gray-200 dark:border-gray-600 pb-1">Business Information</h4>
+                                            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                                <li><span className="font-medium">Name:</span> {businessName}</li>
+                                                <li><span className="font-medium">Business ID:</span> {businessId}</li>
+                                            </ul>
+                                        </div>
+
+                                        <div>
+                                            <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2 border-b border-gray-200 dark:border-gray-600 pb-1">WhatsApp Business Account</h4>
+                                            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                                <li><span className="font-medium">WABA ID:</span> {wabaId}</li>
+                                                <li><span className="font-medium">Account Name:</span> {wabaName}</li>
+                                            </ul>
+                                        </div>
+
+                                        <div>
+                                            <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2 border-b border-gray-200 dark:border-gray-600 pb-1">Phone Number</h4>
+                                            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                                <li><span className="font-medium">Number:</span> {phoneNumber}</li>
+                                                <li><span className="font-medium">Phone ID:</span> {phoneNumberId}</li>
+                                                <li><span className="font-medium flex items-center gap-2">Status: <span className="text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/30 px-2 py-0.5 rounded text-xs">{phoneStatus}</span></span></li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                     
                                     <Link
                                         href={route('whatsapp.disconnect')}
