@@ -50,6 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/whatsapp/send', [\App\Http\Controllers\WhatsAppController::class, 'showSendMessagePage'])->name('whatsapp.send');
 
     Route::get('/whatsapp/logs', [\App\Http\Controllers\MessageLogController::class, 'index'])->name('whatsapp.logs');
+    Route::get('/whatsapp/contacts/{contact}/timeline', [\App\Http\Controllers\MessageLogController::class, 'getTimeline'])->name('whatsapp.contacts.timeline');
     
     Route::name('whatsapp.contacts.')->prefix('whatsapp/contacts')->group(function () {
         Route::get('/', [\App\Http\Controllers\ContactController::class, 'index'])->name('index');

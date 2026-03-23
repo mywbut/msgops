@@ -36,6 +36,21 @@ class ProcessWhatsAppWebhook implements ShouldQueue
 
             $metadata = $entry['metadata'] ?? null;
             $messages = $entry['messages'] ?? null;
+            $statuses = $entry['statuses'] ?? null;
+
+            // Handle Status Updates (sent, delivered, read, failed)
+            if ($statuses && isset($statuses[0])) {
+                $statusData = $statuses[0];
+                $message = Message::where('wam_id', $statusData['id'])->first();
+                if ($message) {
+                    $updateData = ['status' => $statusData['status']];
+                    if (isset($statusData['errors'])) {
+                        $updateData['error'] = $statusData['errors'][0];
+                    }
+                    $message->update($updateData);
+                }
+                return;
+            }
 
             if (!$metadata || !isset($metadata['phone_number_id']) || !$messages || !isset($messages[0])) {
                 return;

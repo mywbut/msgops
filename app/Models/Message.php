@@ -19,10 +19,12 @@ class Message extends Model
         'type',
         'content',
         'status',
+        'error',
     ];
 
     protected $casts = [
         'content' => 'array',
+        'error' => 'array',
     ];
 
     public function organization()
