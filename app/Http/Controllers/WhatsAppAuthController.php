@@ -56,16 +56,23 @@ class WhatsAppAuthController extends Controller
             } elseif ($config->access_token && $config->waba_id) {
                 // Fallback for old connections without cached data
                 try {
-                    // Fetch WABA and Business Info
+                    // Fetch WABA Info (Name)
                     $wabaResponse = Http::withToken($config->access_token)
-                        ->get("https://graph.facebook.com/v18.0/{$wabaId}?fields=name,business");
+                        ->get("https://graph.facebook.com/v18.0/{$wabaId}?fields=name");
                     
                     if ($wabaResponse->successful()) {
-                        $wabaData = $wabaResponse->json();
-                        $wabaName = $wabaData['name'] ?? null;
-                        if (isset($wabaData['business'])) {
-                            $businessId = $wabaData['business']['id'] ?? null;
-                            $businessName = $wabaData['business']['name'] ?? null;
+                        $wabaName = $wabaResponse->json()['name'] ?? null;
+                    }
+
+                    // Fetch Business Info separately to avoid 400 Bad Request if missing permissions
+                    $businessResponse = Http::withToken($config->access_token)
+                        ->get("https://graph.facebook.com/v18.0/{$wabaId}?fields=business");
+                    
+                    if ($businessResponse->successful()) {
+                        $businessData = $businessResponse->json()['business'] ?? null;
+                        if ($businessData) {
+                            $businessId = $businessData['id'] ?? null;
+                            $businessName = $businessData['name'] ?? null;
                         }
                     }
 
@@ -212,20 +219,27 @@ class WhatsAppAuthController extends Controller
                 $phoneStatus = 'Active';
             }
 
-            // 3.5 Fetch WABA and Business Info via access token
+            // 3.5 Fetch WABA Name via access token
             $businessName = null;
             $businessId = null;
             $wabaName = null;
             
             $wabaResponse = Http::withToken($accessToken)
-                ->get("https://graph.facebook.com/v18.0/{$wabaId}?fields=name,business");
+                ->get("https://graph.facebook.com/v18.0/{$wabaId}?fields=name");
             
             if ($wabaResponse->successful()) {
-                $wabaData = $wabaResponse->json();
-                $wabaName = $wabaData['name'] ?? null;
-                if (isset($wabaData['business'])) {
-                    $businessId = $wabaData['business']['id'] ?? null;
-                    $businessName = $wabaData['business']['name'] ?? null;
+                $wabaName = $wabaResponse->json()['name'] ?? null;
+            }
+
+            // Fetch Business Info separately to avoid 400 Bad Request if missing permissions
+            $businessResponse = Http::withToken($accessToken)
+                ->get("https://graph.facebook.com/v18.0/{$wabaId}?fields=business");
+            
+            if ($businessResponse->successful()) {
+                $businessData = $businessResponse->json()['business'] ?? null;
+                if ($businessData) {
+                    $businessId = $businessData['id'] ?? null;
+                    $businessName = $businessData['name'] ?? null;
                 }
             }
             if (!$businessName && $wabaName) {
