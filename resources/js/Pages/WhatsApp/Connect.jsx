@@ -59,7 +59,9 @@ export default function Connect() {
                                             <h4 className="font-semibold text-gray-700 dark:text-gray-300 mb-2 border-b border-gray-200 dark:border-gray-600 pb-1">Business Information</h4>
                                             <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
                                                 <li><span className="font-medium">Name:</span> {businessName}</li>
-                                                <li><span className="font-medium">Business ID:</span> {businessId}</li>
+                                                {businessId && businessId !== 'N/A' && (
+                                                    <li><span className="font-medium">Business ID:</span> {businessId}</li>
+                                                )}
                                             </ul>
                                         </div>
 
