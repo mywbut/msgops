@@ -43,45 +43,66 @@ class WhatsAppAuthController extends Controller
         $phoneNumber = null;
         $phoneStatus = null;
         
-        if ($config && $config->access_token && $config->waba_id) {
-            try {
-                $wabaId = $config->waba_id;
-                
-                // Fetch WABA and Business Info
-                $wabaResponse = Http::withToken($config->access_token)
-                    ->get("https://graph.facebook.com/v18.0/{$wabaId}?fields=name,business");
-                
-                if ($wabaResponse->successful()) {
-                    $wabaData = $wabaResponse->json();
-                    $wabaName = $wabaData['name'] ?? null;
-                    if (isset($wabaData['business'])) {
-                        $businessId = $wabaData['business']['id'] ?? null;
-                        $businessName = $wabaData['business']['name'] ?? null;
-                    }
-                }
-
-                // If business info isn't returned (permission issues), fallback to WABA name
-                if (!$businessName && $wabaName) {
-                    $businessName = $wabaName;
-                }
-
-                // Fetch Phone Number Info
-                if ($config->phone_number_id) {
-                    $phoneResponse = Http::withToken($config->access_token)
-                        ->get("https://graph.facebook.com/v18.0/{$config->phone_number_id}?fields=display_phone_number,name_status");
-
-                    if ($phoneResponse->successful()) {
-                        $phoneData = $phoneResponse->json();
-                        $phoneNumber = $phoneData['display_phone_number'] ?? null;
-                        $phoneStatus = $phoneData['name_status'] ?? null; 
-                        
-                        if (strtolower($phoneStatus) === 'approved') {
-                            $phoneStatus = 'Active';
+        if ($config) {
+            $wabaId = $config->waba_id;
+            
+            // First check if we have data cached in the DB
+            if ($config->waba_name || $config->business_name) {
+                $businessName = $config->business_name;
+                $businessId = $config->business_id;
+                $wabaName = $config->waba_name;
+                $phoneNumber = $config->phone_number;
+                $phoneStatus = $config->phone_status;
+            } elseif ($config->access_token && $config->waba_id) {
+                // Fallback for old connections without cached data
+                try {
+                    // Fetch WABA and Business Info
+                    $wabaResponse = Http::withToken($config->access_token)
+                        ->get("https://graph.facebook.com/v18.0/{$wabaId}?fields=name,business");
+                    
+                    if ($wabaResponse->successful()) {
+                        $wabaData = $wabaResponse->json();
+                        $wabaName = $wabaData['name'] ?? null;
+                        if (isset($wabaData['business'])) {
+                            $businessId = $wabaData['business']['id'] ?? null;
+                            $businessName = $wabaData['business']['name'] ?? null;
                         }
                     }
+
+                    if (!$businessName && $wabaName) {
+                        $businessName = $wabaName;
+                    }
+
+                    // Fetch Phone Number Info
+                    if ($config->phone_number_id) {
+                        $phoneResponse = Http::withToken($config->access_token)
+                            ->get("https://graph.facebook.com/v18.0/{$config->phone_number_id}?fields=display_phone_number,name_status");
+
+                        if ($phoneResponse->successful()) {
+                            $phoneData = $phoneResponse->json();
+                            $phoneNumber = $phoneData['display_phone_number'] ?? null;
+                            $phoneStatus = $phoneData['name_status'] ?? null; 
+                            
+                            if (strtolower($phoneStatus) === 'approved') {
+                                $phoneStatus = 'Active';
+                            }
+                        }
+                    }
+                    
+                    // Save the fetched info for future loads so it doesn't break if token expires
+                    if ($wabaName || $phoneNumber) {
+                        $config->update([
+                            'business_name' => $businessName,
+                            'business_id' => $businessId,
+                            'waba_name' => $wabaName,
+                            'phone_number' => $phoneNumber,
+                            'phone_status' => $phoneStatus,
+                        ]);
+                    }
+
+                } catch (\Exception $e) {
+                    Log::error('Failed to fetch WhatsApp Business details: ' . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                Log::error('Failed to fetch WhatsApp Business details: ' . $e->getMessage());
             }
         }
 
@@ -184,6 +205,32 @@ class WhatsAppAuthController extends Controller
 
             // Grab the very first phone number attached to this WABA for the MVP
             $phoneNumberId = $phonesData['data'][0]['id'];
+            $phoneNumberDisplay = $phonesData['data'][0]['display_phone_number'] ?? null;
+            $phoneStatus = $phonesData['data'][0]['name_status'] ?? null;
+            
+            if (strtolower($phoneStatus) === 'approved') {
+                $phoneStatus = 'Active';
+            }
+
+            // 3.5 Fetch WABA and Business Info via access token
+            $businessName = null;
+            $businessId = null;
+            $wabaName = null;
+            
+            $wabaResponse = Http::withToken($accessToken)
+                ->get("https://graph.facebook.com/v18.0/{$wabaId}?fields=name,business");
+            
+            if ($wabaResponse->successful()) {
+                $wabaData = $wabaResponse->json();
+                $wabaName = $wabaData['name'] ?? null;
+                if (isset($wabaData['business'])) {
+                    $businessId = $wabaData['business']['id'] ?? null;
+                    $businessName = $wabaData['business']['name'] ?? null;
+                }
+            }
+            if (!$businessName && $wabaName) {
+                $businessName = $wabaName;
+            }
 
             // 4. Register the phone number for the Cloud API.
             // Meta requires newly linked phone numbers to be registered with a 6-digit PIN.
@@ -205,6 +252,11 @@ class WhatsAppAuthController extends Controller
                     'phone_number_id' => $phoneNumberId,
                     'waba_id' => $wabaId,
                     'access_token' => $accessToken,
+                    'business_name' => $businessName,
+                    'business_id' => $businessId,
+                    'waba_name' => $wabaName,
+                    'phone_number' => $phoneNumberDisplay,
+                    'phone_status' => $phoneStatus,
                 ]
             );
             return redirect()->route('whatsapp.connect')->with('success', 'Successfully connected your WhatsApp Business number!');

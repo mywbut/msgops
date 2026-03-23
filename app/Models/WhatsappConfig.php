@@ -17,6 +17,11 @@ class WhatsappConfig extends Model
         'waba_id',
         'access_token',
         'webhook_verify_token',
+        'business_name',
+        'business_id',
+        'waba_name',
+        'phone_number',
+        'phone_status',
     ];
 
     public function organization()
