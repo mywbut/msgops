@@ -40,6 +40,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/whatsapp/connect', [WhatsAppAuthController::class, 'showConnectPage'])->name('whatsapp.connect');
     Route::delete('/whatsapp/disconnect', [WhatsAppAuthController::class, 'disconnect'])->name('whatsapp.disconnect');
 
+    // WhatsApp Template Management
+    Route::get('/whatsapp/templates', [\App\Http\Controllers\WhatsAppTemplateController::class, 'index'])->name('whatsapp.templates.index');
+    Route::get('/whatsapp/templates/create', [\App\Http\Controllers\WhatsAppTemplateController::class, 'create'])->name('whatsapp.templates.create');
+    Route::post('/whatsapp/templates', [\App\Http\Controllers\WhatsAppTemplateController::class, 'store'])->name('whatsapp.templates.store');
+    
     // WhatsApp Mockup Routes for App Review Screencast
     Route::post('/whatsapp/send-message', [\App\Http\Controllers\WhatsAppController::class, 'sendMessage'])->name('whatsapp.send-message');
     Route::get('/whatsapp/send', function () {

@@ -43,6 +43,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Send Message
                                 </NavLink>
                                 <NavLink
+                                    href={route('whatsapp.templates.index')}
+                                    active={route().current('whatsapp.templates.*')}
+                                >
+                                    Templates
+                                </NavLink>
+                                <NavLink
                                     href={route('whatsapp.logs')}
                                     active={route().current('whatsapp.logs')}
                                 >
@@ -169,6 +175,12 @@ export default function AuthenticatedLayout({ header, children }) {
                             active={route().current('whatsapp.send')}
                         >
                             Send Message
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('whatsapp.templates.index')}
+                            active={route().current('whatsapp.templates.*')}
+                        >
+                            Templates
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('whatsapp.logs')}
