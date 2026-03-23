@@ -47,10 +47,7 @@ Route::middleware('auth')->group(function () {
     
     // WhatsApp Mockup Routes for App Review Screencast
     Route::post('/whatsapp/send-message', [\App\Http\Controllers\WhatsAppController::class, 'sendMessage'])->name('whatsapp.send-message');
-    Route::get('/whatsapp/send', function () {
-        $config = \App\Models\WhatsappConfig::where('org_id', request()->user()->org_id)->first();
-        return Inertia::render('WhatsApp/SendMessage', ['isConnected' => $config ? true : false]);
-    })->name('whatsapp.send');
+    Route::get('/whatsapp/send', [\App\Http\Controllers\WhatsAppController::class, 'showSendMessagePage'])->name('whatsapp.send');
 
     Route::get('/whatsapp/logs', [\App\Http\Controllers\MessageLogController::class, 'index'])->name('whatsapp.logs');
     

@@ -1,148 +1,270 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import axios from 'axios';
+import PrimaryButton from '@/Components/PrimaryButton';
+import SecondaryButton from '@/Components/SecondaryButton';
+import TextInput from '@/Components/TextInput';
+import InputLabel from '@/Components/InputLabel';
 
 export default function SendMessage() {
-    const { isConnected } = usePage().props;
-    const [status, setStatus] = useState('');
-    const [error, setError] = useState('');
-    const [sending, setSending] = useState(false);
+    const { isConnected, templates = [], contacts = [] } = usePage().props;
     
-    const [recipient, setRecipient] = useState('');
-    const [template, setTemplate] = useState('');
+    const [sending, setSending] = useState(false);
+    const [status, setStatus] = useState(null);
+    const [error, setError] = useState(null);
+
+    const [msgType, setMsgType] = useState('text'); // text, template, image, document
+    const [recipientMode, setRecipientMode] = useState('single'); // single, bulk, crm
+    
+    const [singleRecipient, setSingleRecipient] = useState('');
+    const [bulkRecipients, setBulkRecipients] = useState('');
+    const [selectedCRMContacts, setSelectedCRMContacts] = useState([]);
+    
     const [message, setMessage] = useState('');
+    const [selectedTemplate, setSelectedTemplate] = useState('');
+    const [mediaUrl, setMediaUrl] = useState('');
+
+    // Template details
+    const templateData = useMemo(() => {
+        return templates.find(t => t.name === selectedTemplate);
+    }, [selectedTemplate, templates]);
+
+    const templateBody = useMemo(() => {
+        const bodyComp = templateData?.components?.find(c => c.type === 'BODY');
+        return bodyComp?.text || '';
+    }, [templateData]);
 
     const handleSend = async (e) => {
         e.preventDefault();
         setSending(true);
-        setStatus('');
-        setError('');
+        setStatus(null);
+        setError(null);
+
+        let recipients = [];
+        if (recipientMode === 'single') {
+            recipients = [singleRecipient];
+        } else if (recipientMode === 'bulk') {
+            recipients = bulkRecipients.split(/[\n,]+/).map(r => r.trim()).filter(r => r);
+        } else if (recipientMode === 'crm') {
+            recipients = selectedCRMContacts.map(id => contacts.find(c => c.id === id)?.phone_number).filter(r => r);
+        }
+
+        if (recipients.length === 0) {
+            setError('Please provide at least one recipient.');
+            setSending(false);
+            return;
+        }
 
         try {
-            const response = await axios.post('/whatsapp/send-message', {
-                recipient,
-                template,
-                message
-            });
+            const payload = {
+                recipients,
+                type: msgType,
+                message: msgType === 'text' ? message : null,
+                template_name: msgType === 'template' ? selectedTemplate : null,
+                template_language: msgType === 'template' ? templateData?.language : null,
+                media_url: (msgType === 'image' || msgType === 'document') ? mediaUrl : null,
+            };
 
-            setStatus('Message successfully sent to Meta API!');
-            setTimeout(() => setStatus(''), 5000);
-            setMessage('');
+            const response = await axios.post('/whatsapp/send-message', payload);
+            
+            if (response.data.success) {
+                setStatus(response.data.summary);
+                // Reset form on success if single
+                if (recipientMode === 'single') {
+                    setSingleRecipient('');
+                    setMessage('');
+                    setMediaUrl('');
+                }
+            } else {
+                setError(response.data.summary);
+            }
         } catch (err) {
-            setError(err.response?.data?.error || 'An error occurred while sending the message.');
-            setTimeout(() => setError(''), 5000);
+            setError(err.response?.data?.error || 'Failed to send messages.');
         } finally {
             setSending(false);
         }
+    };
+
+    const toggleCRMContact = (id) => {
+        setSelectedCRMContacts(prev => 
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
     };
 
     return (
         <AuthenticatedLayout
             header={
                 <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                    Send Message
+                    Pro Messaging Console
                 </h2>
             }
         >
             <Head title="Send Message" />
 
             <div className="py-12">
-                <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                        <div className="p-6 text-gray-900 dark:text-gray-100">
+                <div className="mx-auto max-w-5xl sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        
+                        {/* Left Column: Recipient Selection */}
+                        <div className="md:col-span-1 space-y-6">
+                            <div className="bg-white p-6 shadow sm:rounded-lg dark:bg-gray-800 h-full border border-gray-100 dark:border-gray-700">
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">1. Select Audience</h3>
+                                
+                                <div className="space-y-4">
+                                    <div className="flex bg-gray-100 dark:bg-gray-900 p-1 rounded-lg">
+                                        <button 
+                                            onClick={() => setRecipientMode('single')}
+                                            className={`flex-1 py-1 px-2 text-xs rounded-md transition ${recipientMode === 'single' ? 'bg-white dark:bg-gray-800 shadow text-[#1877F2] font-semibold' : 'text-gray-500'}`}
+                                        >Single</button>
+                                        <button 
+                                            onClick={() => setRecipientMode('bulk')}
+                                            className={`flex-1 py-1 px-2 text-xs rounded-md transition ${recipientMode === 'bulk' ? 'bg-white dark:bg-gray-800 shadow text-[#1877F2] font-semibold' : 'text-gray-500'}`}
+                                        >Bulk</button>
+                                        <button 
+                                            onClick={() => setRecipientMode('crm')}
+                                            className={`flex-1 py-1 px-2 text-xs rounded-md transition ${recipientMode === 'crm' ? 'bg-white dark:bg-gray-800 shadow text-[#1877F2] font-semibold' : 'text-gray-500'}`}
+                                        >CRM</button>
+                                    </div>
 
-                            {!isConnected && (
-                                <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded text-yellow-800 dark:text-yellow-200">
-                                    <p className="font-semibold">WhatsApp is not connected.</p>
-                                    <p className="text-sm">You must connect your WhatsApp Business Account before sending messages.</p>
+                                    {recipientMode === 'single' && (
+                                        <div>
+                                            <InputLabel value="Phone Number" />
+                                            <TextInput 
+                                                className="w-full mt-1" 
+                                                placeholder="+12345..." 
+                                                value={singleRecipient}
+                                                onChange={e => setSingleRecipient(e.target.value)}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {recipientMode === 'bulk' && (
+                                        <div>
+                                            <InputLabel value="Enter Numbers (Newline or Comma)" />
+                                            <textarea 
+                                                className="w-full mt-1 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" 
+                                                rows={6}
+                                                placeholder="+123456789\n+987654321..."
+                                                value={bulkRecipients}
+                                                onChange={e => setBulkRecipients(e.target.value)}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {recipientMode === 'crm' && (
+                                        <div className="max-h-96 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                            {contacts.length === 0 && <p className="text-sm text-gray-500 text-center py-4">No contacts in CRM yet.</p>}
+                                            {contacts.map(contact => (
+                                                <div 
+                                                    key={contact.id}
+                                                    onClick={() => toggleCRMContact(contact.id)}
+                                                    className={`p-2 border rounded cursor-pointer transition ${selectedCRMContacts.includes(contact.id) ? 'border-[#1877F2] bg-blue-50 dark:bg-blue-900/20' : 'border-gray-200 dark:border-gray-700'}`}
+                                                >
+                                                    <p className="text-sm font-medium">{contact.name}</p>
+                                                    <p className="text-xs text-gray-500">{contact.phone_number}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-
-                            <form onSubmit={handleSend} className="space-y-6">
-                                <div>
-                                    <label htmlFor="sender" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sender WhatsApp Number (Asset)</label>
-                                    <select
-                                        id="sender"
-                                        className="mt-1 mb-6 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 bg-gray-50 dark:bg-gray-800"
-                                        disabled={!isConnected}
-                                    >
-                                        {isConnected ? (
-                                            <option value="connected">Connected WhatsApp Business Account</option>
-                                        ) : (
-                                            <option value="">No Account Connected</option>
-                                        )}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="recipient" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Recipient Phone Number (with country code)</label>
-                                    <input
-                                        type="tel"
-                                        id="recipient"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                        placeholder="+1234567890"
-                                        disabled={!isConnected || sending}
-                                        required
-                                        value={recipient}
-                                        onChange={(e) => setRecipient(e.target.value)}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label htmlFor="template" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Message Template (Optional)</label>
-                                    <select
-                                        id="template"
-                                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                        disabled={!isConnected || sending}
-                                        value={template}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            setTemplate(val);
-                                            if (val === 'hello_world') {
-                                                setMessage('Welcome and congratulations!! This message demonstrates your ability to send a WhatsApp message notification from the Cloud API, hosted by Meta. Thank you for taking the time to test with us.');
-                                            } else {
-                                                setMessage('');
-                                            }
-                                        }}
-                                    >
-                                        <option value="">-- No Template (Free-form Text) --</option>
-                                        <option value="hello_world">Meta Test Template (hello_world)</option>
-                                        <option value="welcome">Welcome Message</option>
-                                        <option value="appointment">Appointment Reminder</option>
-                                        <option value="update">Order Update</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Message Body</label>
-                                    <textarea
-                                        id="message"
-                                        rows={4}
-                                        className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 ${template ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
-                                        placeholder="Type your message here..."
-                                        disabled={!isConnected || sending || template !== ''}
-                                        required
-                                        value={message}
-                                        onChange={(e) => setMessage(e.target.value)}
-                                    />
-                                    <p className="mt-2 text-sm text-gray-500">Variables like ((name)) will be replaced automatically.</p>
-                                </div>
-
-                                <div className="flex items-center gap-4">
-                                    <button
-                                        type="submit"
-                                        disabled={!isConnected || sending}
-                                        className="bg-[#1877F2] hover:bg-[#0c63d4] text-white font-bold py-2 px-6 rounded shadow transition duration-200 disabled:opacity-50"
-                                    >
-                                        {sending ? 'Sending...' : 'Send Message'}
-                                    </button>
-                                    {status && <span className="text-sm text-green-600 dark:text-green-400">{status}</span>}
-                                    {error && <span className="text-sm text-red-600 dark:text-red-400">{error}</span>}
-                                </div>
-                            </form>
-
+                            </div>
                         </div>
+
+                        {/* Right Column: Message Composition */}
+                        <div className="md:col-span-2 space-y-6">
+                            <div className="bg-white p-6 shadow sm:rounded-lg dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
+                                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">2. Compose Message</h3>
+
+                                {!isConnected && (
+                                    <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 rounded text-red-800 dark:text-red-200 text-sm">
+                                        WhatsApp is not connected. Please connect via dashboard.
+                                    </div>
+                                )}
+
+                                <div className="space-y-6">
+                                    <div className="flex space-x-4 border-b dark:border-gray-700 pb-4">
+                                        {['text', 'template', 'image', 'document'].map(type => (
+                                            <button 
+                                                key={type}
+                                                onClick={() => setMsgType(type)}
+                                                className={`text-sm font-medium capitalize pb-2 px-1 transition ${msgType === type ? 'text-[#1877F2] border-b-2 border-[#1877F2]' : 'text-gray-500 hover:text-gray-700'}`}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {msgType === 'text' && (
+                                        <div>
+                                            <InputLabel value="Message Content" />
+                                            <textarea 
+                                                className="w-full mt-1 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100" 
+                                                rows={5}
+                                                placeholder="Hello, how can I help you today?"
+                                                value={message}
+                                                onChange={e => setMessage(e.target.value)}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {msgType === 'template' && (
+                                        <div className="space-y-4">
+                                            <div>
+                                                <InputLabel value="Select Approved Template" />
+                                                <select 
+                                                    className="w-full mt-1 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                                                    value={selectedTemplate}
+                                                    onChange={e => setSelectedTemplate(e.target.value)}
+                                                >
+                                                    <option value="">-- Choose a template --</option>
+                                                    {templates.map(t => (
+                                                        <option key={t.id} value={t.name}>{t.name} ({t.language})</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            {selectedTemplate && (
+                                                <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+                                                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Live Preview (Body)</p>
+                                                    <p className="text-sm italic">{templateBody || 'Loading body...'}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {(msgType === 'image' || msgType === 'document') && (
+                                        <div className="space-y-4">
+                                            <div>
+                                                <InputLabel value={`${msgType === 'image' ? 'Image' : 'Document'} URL (Public link)`} />
+                                                <TextInput 
+                                                    className="w-full mt-1" 
+                                                    placeholder="https://example.com/file.jpg" 
+                                                    value={mediaUrl}
+                                                    onChange={e => setMediaUrl(e.target.value)}
+                                                />
+                                                <p className="text-xs text-gray-500 mt-2">
+                                                    For {msgType === 'image' ? 'images' : 'PDFs'}, ensure the link is publicly accessible via HTTPS.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="pt-4 flex items-center justify-between border-t dark:border-gray-700">
+                                        <div className="space-x-4">
+                                            {status && <span className="text-sm font-semibold text-green-600 dark:text-green-400">✓ {status}</span>}
+                                            {error && <span className="text-sm font-semibold text-red-600 dark:text-red-400">✗ {error}</span>}
+                                        </div>
+                                        <PrimaryButton 
+                                            onClick={handleSend}
+                                            disabled={!isConnected || sending}
+                                        >
+                                            {sending ? 'Processing Broadcast...' : 'Execute Send'}
+                                        </PrimaryButton>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
