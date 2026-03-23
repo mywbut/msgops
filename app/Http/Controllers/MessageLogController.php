@@ -30,7 +30,7 @@ class MessageLogController extends Controller
                         'contact_name' => $msg->contact->name,
                         'status' => ucfirst($msg->status),
                         'message' => $msg->content['body'] ?? ($msg->type === 'template' ? 'Template Message' : 'Media'),
-                        'time' => $msg->created_at->diffForHumans(),
+                        'time' => \Carbon\Carbon::parse($msg->created_at)->diffForHumans(),
                         'direction' => $msg->direction,
                     ];
                 });
