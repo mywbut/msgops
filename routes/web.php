@@ -53,7 +53,14 @@ Route::middleware('auth')->group(function () {
     })->name('whatsapp.send');
 
     Route::get('/whatsapp/logs', [\App\Http\Controllers\MessageLogController::class, 'index'])->name('whatsapp.logs');
-    Route::get('/whatsapp/contacts', [\App\Http\Controllers\ContactController::class, 'index'])->name('whatsapp.contacts');
+    
+    Route::name('whatsapp.contacts.')->prefix('whatsapp/contacts')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ContactController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\ContactController::class, 'store'])->name('store');
+        Route::post('/import', [\App\Http\Controllers\ContactController::class, 'import'])->name('import');
+        Route::patch('/{contact}', [\App\Http\Controllers\ContactController::class, 'update'])->name('update');
+        Route::delete('/{contact}', [\App\Http\Controllers\ContactController::class, 'destroy'])->name('destroy');
+    });
 
     Route::get('/whatsapp/automation', function () {
         $config = \App\Models\WhatsappConfig::where('org_id', request()->user()->org_id)->first();
