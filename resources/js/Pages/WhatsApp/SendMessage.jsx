@@ -13,6 +13,7 @@ export default function SendMessage() {
     const [sending, setSending] = useState(false);
     const [status, setStatus] = useState(null);
     const [error, setError] = useState(null);
+    const [detailedErrors, setDetailedErrors] = useState([]);
 
     const [msgType, setMsgType] = useState('text'); // text, template, image, document
     const [recipientMode, setRecipientMode] = useState('single'); // single, bulk, crm
@@ -40,6 +41,7 @@ export default function SendMessage() {
         setSending(true);
         setStatus(null);
         setError(null);
+        setDetailedErrors([]);
 
         let recipients = [];
         if (recipientMode === 'single') {
@@ -70,14 +72,18 @@ export default function SendMessage() {
             
             if (response.data.success) {
                 setStatus(response.data.summary);
+                if (response.data.details?.fail_count > 0) {
+                    setDetailedErrors(response.data.details.errors);
+                }
                 // Reset form on success if single
-                if (recipientMode === 'single') {
+                if (recipientMode === 'single' && response.data.details?.fail_count === 0) {
                     setSingleRecipient('');
                     setMessage('');
                     setMediaUrl('');
                 }
             } else {
                 setError(response.data.summary);
+                setDetailedErrors(response.data.details?.errors || []);
             }
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to send messages.');
@@ -249,17 +255,28 @@ export default function SendMessage() {
                                         </div>
                                     )}
 
-                                    <div className="pt-4 flex items-center justify-between border-t dark:border-gray-700">
-                                        <div className="space-x-4">
-                                            {status && <span className="text-sm font-semibold text-green-600 dark:text-green-400">✓ {status}</span>}
-                                            {error && <span className="text-sm font-semibold text-red-600 dark:text-red-400">✗ {error}</span>}
+                                    <div className="pt-4 flex flex-col space-y-4 border-t dark:border-gray-700">
+                                        <div className="flex items-center justify-between">
+                                            <div className="space-x-4">
+                                                {status && <span className="text-sm font-semibold text-green-600 dark:text-green-400">✓ {status}</span>}
+                                                {error && <span className="text-sm font-semibold text-red-600 dark:text-red-400">✗ {error}</span>}
+                                            </div>
+                                            <PrimaryButton 
+                                                onClick={handleSend}
+                                                disabled={!isConnected || sending}
+                                            >
+                                                {sending ? 'Processing Broadcast...' : 'Execute Send'}
+                                            </PrimaryButton>
                                         </div>
-                                        <PrimaryButton 
-                                            onClick={handleSend}
-                                            disabled={!isConnected || sending}
-                                        >
-                                            {sending ? 'Processing Broadcast...' : 'Execute Send'}
-                                        </PrimaryButton>
+
+                                        {detailedErrors.length > 0 && (
+                                            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900 rounded text-xs text-red-700 dark:text-red-300 space-y-1">
+                                                <p className="font-bold mb-1">Detailed Errors:</p>
+                                                {detailedErrors.map((err, i) => (
+                                                    <p key={i}>• {err}</p>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
