@@ -107,10 +107,13 @@ class WhatsAppController extends Controller
                         break;
                 }
 
+                Log::info("Sending WhatsApp message to {$recipient} via Meta API", ['payload' => $payload]);
+
                 $response = Http::withToken($config->access_token)
                     ->post("https://graph.facebook.com/v18.0/{$config->phone_number_id}/messages", $payload);
 
                 if ($response->successful()) {
+                    Log::info("Meta API Success for {$recipient}: " . $response->body());
                     $results['success_count']++;
                     
                     // CRM Upsert & Logging
@@ -133,8 +136,27 @@ class WhatsAppController extends Controller
                         'status' => 'sent',
                     ]);
                 } else {
+                    Log::error("Meta API Failure for {$recipient}: " . $response->body());
                     $results['fail_count']++;
-                    $results['errors'][] = "Recipient {$recipient}: " . ($response->json()['error']['message'] ?? 'Unknown API error');
+                    $errorData = $response->json();
+                    $errorMsg = $errorData['error']['message'] ?? 'Unknown API error';
+                    $results['errors'][] = "Recipient {$recipient}: " . $errorMsg;
+
+                    // Log Failed Message in DB too!
+                    $contact = Contact::firstOrCreate(
+                        ['org_id' => $user->org_id, 'phone_number' => $recipient],
+                        ['name' => 'Unknown']
+                    );
+
+                    Message::create([
+                        'org_id' => $user->org_id,
+                        'contact_id' => $contact->id,
+                        'direction' => 'outbound',
+                        'type' => $request->type,
+                        'content' => ['body' => $request->message ?? "Failed {$request->type}"],
+                        'status' => 'failed',
+                        'error' => $errorData['error'] ?? ['message' => $errorMsg]
+                    ]);
                 }
 
             } catch (\Exception $e) {
