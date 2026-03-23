@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Contact;
+use App\Models\Message;
 use App\Models\WhatsappConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -80,6 +82,23 @@ class WhatsAppController extends Controller
             }
 
             Log::info("Meta Success Payload: " . json_encode($payload) . " || Response: " . $response->body());
+
+            // 1. Ensure the recipient exists in the CRM
+            $contact = Contact::firstOrCreate(
+                ['org_id' => $user->org_id, 'phone_number' => $recipient],
+                ['name' => 'Unknown']
+            );
+
+            // 2. Log Outbound Message
+            Message::create([
+                'org_id' => $user->org_id,
+                'contact_id' => $contact->id,
+                'wam_id' => $response->json()['messages'][0]['id'] ?? null,
+                'direction' => 'outbound',
+                'type' => $request->input('template') ? 'template' : 'text',
+                'content' => ['body' => $request->input('template') ?: $messageBody],
+                'status' => 'sent',
+            ]);
 
             return response()->json([
                 'success' => true,

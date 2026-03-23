@@ -52,10 +52,8 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('WhatsApp/SendMessage', ['isConnected' => $config ? true : false]);
     })->name('whatsapp.send');
 
-    Route::get('/whatsapp/logs', function () {
-        $config = \App\Models\WhatsappConfig::where('org_id', request()->user()->org_id)->first();
-        return Inertia::render('WhatsApp/MessageLogs', ['isConnected' => $config ? true : false]);
-    })->name('whatsapp.logs');
+    Route::get('/whatsapp/logs', [\App\Http\Controllers\MessageLogController::class, 'index'])->name('whatsapp.logs');
+    Route::get('/whatsapp/contacts', [\App\Http\Controllers\ContactController::class, 'index'])->name('whatsapp.contacts');
 
     Route::get('/whatsapp/automation', function () {
         $config = \App\Models\WhatsappConfig::where('org_id', request()->user()->org_id)->first();
