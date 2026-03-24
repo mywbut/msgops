@@ -3,28 +3,35 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Index({ contacts, tags, contactTags, filters, isConnected }) {
-    const { data, setData, get, post, patch, delete: destroy, processing } = useForm({
-        search: filters.search || '',
-        tag: filters.tag || '',
+    const contactForm = useForm({
+        name: '',
+        phone_number: '',
+        tags: [],
     });
 
-    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [selectedContact, setSelectedContact] = useState(null);
+    useState(() => {
+        if (selectedContact) {
+            contactForm.setData({
+                name: selectedContact.name || '',
+                phone_number: selectedContact.phone_number || '',
+                tags: selectedContact.tags || [],
+            });
+        } else {
+            contactForm.reset();
+        }
+    }, [selectedContact, isAddModalOpen]);
 
-    const handleSearch = (e) => {
+    const handleContactSubmit = (e) => {
         e.preventDefault();
-        get(route('whatsapp.contacts.index'), { preserveState: true });
-    };
-
-    const handleTagFilter = (tagName) => {
-        setData('tag', tagName === data.tag ? '' : tagName);
-        get(route('whatsapp.contacts.index', { ...filters, tag: tagName === data.tag ? '' : tagName }), { preserveState: true });
-    };
-
-    const getTagColor = (tagName) => {
-        const tag = tags.find(t => t.name === tagName);
-        return tag ? tag.color : '#64748b'; // Default slate
+        if (selectedContact) {
+            contactForm.patch(route('whatsapp.contacts.update', selectedContact.id), {
+                onSuccess: () => { setIsAddModalOpen(false); contactForm.reset(); }
+            });
+        } else {
+            contactForm.post(route('whatsapp.contacts.store'), {
+                onSuccess: () => { setIsAddModalOpen(false); contactForm.reset(); }
+            });
+        }
     };
 
     return (
@@ -51,7 +58,7 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                             Import
                         </button>
                         <button
-                            onClick={() => { setSelectedContact(null); setIsAddModalOpen(true); }}
+                            onClick={() => { setSelectedContact(null); contactForm.reset(); setIsAddModalOpen(true); }}
                             className="bg-[#25D366] hover:bg-[#128C7E] text-white px-6 py-2 rounded-xl shadow-lg shadow-[#25D366]/20 text-sm font-bold transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
@@ -156,7 +163,15 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                                 </Link>
                                                 <button 
-                                                    onClick={() => { setSelectedContact(contact); setIsAddModalOpen(true); }}
+                                                    onClick={() => { 
+                                                        setSelectedContact(contact); 
+                                                        contactForm.setData({
+                                                            name: contact.name || '',
+                                                            phone_number: contact.phone_number || '',
+                                                            tags: contact.tags || [],
+                                                        });
+                                                        setIsAddModalOpen(true); 
+                                                    }}
                                                     className="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -200,6 +215,58 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                     </div>
                 </div>
             </div>
+
+            {/* Add/Edit Contact Modal */}
+            {isAddModalOpen && (
+                <div className="fixed inset-0 bg-[#0B1F2A]/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-md p-10 shadow-2xl animate-fade-in relative">
+                        <button onClick={() => setIsAddModalOpen(false)} className="absolute top-8 right-8 text-gray-400 hover:text-black">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                        <h3 className="text-2xl font-bold text-[#0B1F2A] mb-2 font-heading">{selectedContact ? 'Edit Contact' : 'Add New Contact'}</h3>
+                        <p className="text-sm text-gray-400 mb-8">{selectedContact ? 'Update contact information' : 'Create a new contact manually.'}</p>
+                        
+                        <form onSubmit={handleContactSubmit} className="space-y-6">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Full Name</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-[#25D366] transition-all"
+                                    placeholder="e.g. John Doe"
+                                    value={contactForm.data.name}
+                                    onChange={e => contactForm.setData('name', e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Phone Number</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-[#25D366] transition-all"
+                                    placeholder="e.g. 1234567890"
+                                    required
+                                    value={contactForm.data.phone_number}
+                                    onChange={e => contactForm.setData('phone_number', e.target.value)}
+                                />
+                                <p className="text-[10px] text-gray-400 mt-2 italic">Include country code without + or 00.</p>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Tags (Comma separated)</label>
+                                <input 
+                                    type="text" 
+                                    className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-[#25D366] transition-all"
+                                    placeholder="e.g. customer, lead, priority"
+                                    value={contactForm.data.tags.join(', ')}
+                                    onChange={e => contactForm.setData('tags', e.target.value.split(',').map(t => t.trim()).filter(t => t !== ''))}
+                                />
+                            </div>
+                            
+                            <button type="submit" disabled={contactForm.processing} className="w-full bg-[#0B1F2A] hover:bg-black text-white py-4 rounded-2xl font-bold shadow-xl shadow-black/10 transition-all flex justify-center items-center gap-2">
+                                {contactForm.processing ? 'Saving...' : (selectedContact ? 'Update Contact' : 'Save Contact')}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Import Modal Mockup */}
             {isImportModalOpen && (
