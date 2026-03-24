@@ -10,14 +10,24 @@ import {
     TrendingUp, Calendar
 } from 'lucide-react';
 
-export default function Dashboard({ isConnected, stats, chartData, recentCampaigns, waba_status }) {
+export default function Dashboard({ isConnected = false, stats = {}, chartData = [], recentCampaigns = [], waba_status = 'Disconnected' }) {
     const COLORS = ['#25D366', '#3b82f6', '#4F46E5', '#ef4444'];
     
+    // Defensive stats defaults
+    const safeStats = {
+        total_contacts: stats?.total_contacts ?? 0,
+        total_messages: stats?.total_messages ?? 0,
+        sent: stats?.sent ?? 0,
+        delivered: stats?.delivered ?? 0,
+        read: stats?.read ?? 0,
+        failed: stats?.failed ?? 0
+    };
+
     const pieData = [
-        { name: 'Delivered', value: stats.delivered },
-        { name: 'Read', value: stats.read },
-        { name: 'Sent', value: stats.sent },
-        { name: 'Failed', value: stats.failed },
+        { name: 'Delivered', value: safeStats.delivered },
+        { name: 'Read', value: safeStats.read },
+        { name: 'Sent', value: safeStats.sent },
+        { name: 'Failed', value: safeStats.failed },
     ].filter(item => item.value > 0);
 
     return (
@@ -51,10 +61,10 @@ export default function Dashboard({ isConnected, stats, chartData, recentCampaig
                     {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         {[
-                            { label: 'Total Contacts', val: stats.total_contacts, icon: <Users className="w-5 h-5" />, color: 'bg-blue-500', trend: '+12%' },
-                            { label: 'Total Messages', val: stats.total_messages, icon: <MessageSquare className="w-5 h-5" />, color: 'bg-indigo-500', trend: '+8%' },
-                            { label: 'Delivery Rate', val: stats.total_messages > 0 ? Math.round((stats.delivered/stats.total_messages)*100) : 0, icon: <CheckCircle className="w-5 h-5" />, color: 'bg-[#25D366]', suffix: '%' },
-                            { label: 'Failed Rate', val: stats.total_messages > 0 ? Math.round((stats.failed/stats.total_messages)*100) : 0, icon: <AlertCircle className="w-5 h-5" />, color: 'bg-red-500', suffix: '%' },
+                            { label: 'Total Contacts', val: safeStats.total_contacts, icon: <Users className="w-5 h-5" />, color: 'bg-blue-500', trend: '+12%' },
+                            { label: 'Total Messages', val: safeStats.total_messages, icon: <MessageSquare className="w-5 h-5" />, color: 'bg-indigo-500', trend: '+8%' },
+                            { label: 'Delivery Rate', val: safeStats.total_messages > 0 ? Math.round((safeStats.delivered/safeStats.total_messages)*100) : 0, icon: <CheckCircle className="w-5 h-5" />, color: 'bg-[#25D366]', suffix: '%' },
+                            { label: 'Failed Rate', val: safeStats.total_messages > 0 ? Math.round((safeStats.failed/safeStats.total_messages)*100) : 0, icon: <AlertCircle className="w-5 h-5" />, color: 'bg-red-500', suffix: '%' },
                         ].map((stat, i) => (
                             <div key={i} className="bg-white p-6 rounded-[1.5rem] shadow-sm border border-gray-100 hover:shadow-md transition-all group">
                                 <div className="flex justify-between items-start mb-4">
@@ -145,7 +155,7 @@ export default function Dashboard({ isConnected, stats, chartData, recentCampaig
                                     </PieChart>
                                 </ResponsiveContainer>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <span className="text-2xl font-bold text-[#0B1F2A]">{stats.delivered + stats.sent + stats.failed}</span>
+                                    <span className="text-2xl font-bold text-[#0B1F2A]">{safeStats.delivered + safeStats.sent + safeStats.failed}</span>
                                     <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Total</span>
                                 </div>
                             </div>

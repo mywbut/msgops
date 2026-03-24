@@ -46,9 +46,9 @@ class DashboardController extends Controller
         $chartData = $last7Days->map(function($date) use ($dailyVolume) {
             return [
                 'date' => Carbon::parse($date)->format('M d'),
-                'count' => $dailyVolume[$date] ?? 0
+                'count' => (int)($dailyVolume[$date] ?? 0)
             ];
-        });
+        })->values();
 
         // 5. Recent Campaigns
         $recentCampaigns = Campaign::where('org_id', $orgId)
@@ -59,12 +59,12 @@ class DashboardController extends Controller
         return Inertia::render('Dashboard', [
             'isConnected' => $config ? true : false,
             'stats' => [
-                'total_contacts' => $totalContacts,
-                'total_messages' => $totalMessages,
-                'sent' => $statusStats['sent'] ?? 0,
-                'delivered' => $statusStats['delivered'] ?? 0,
-                'read' => $statusStats['read'] ?? 0,
-                'failed' => $statusStats['failed'] ?? 0,
+                'total_contacts' => (int)$totalContacts,
+                'total_messages' => (int)$totalMessages,
+                'sent' => (int)($statusStats['sent'] ?? 0),
+                'delivered' => (int)($statusStats['delivered'] ?? 0),
+                'read' => (int)($statusStats['read'] ?? 0),
+                'failed' => (int)($statusStats['failed'] ?? 0),
             ],
             'chartData' => $chartData,
             'recentCampaigns' => $recentCampaigns,
