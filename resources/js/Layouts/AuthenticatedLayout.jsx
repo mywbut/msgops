@@ -43,10 +43,10 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Connect WhatsApp
                                 </NavLink>
                                 <NavLink
-                                    href={route('whatsapp.send')}
-                                    active={route().current('whatsapp.send')}
+                                    href={route('whatsapp.campaigns.index')}
+                                    active={route().current('whatsapp.campaigns.*')}
                                 >
-                                    Send Message
+                                    Campaigns & Broadcasts
                                 </NavLink>
                                 <NavLink
                                     href={route('whatsapp.contacts.index')}
@@ -189,10 +189,10 @@ export default function AuthenticatedLayout({ header, children }) {
                             Connect WhatsApp
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
-                            href={route('whatsapp.send')}
-                            active={route().current('whatsapp.send')}
+                            href={route('whatsapp.campaigns.index')}
+                            active={route().current('whatsapp.campaigns.*')}
                         >
-                            Send Message
+                            Campaigns & Broadcasts
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('whatsapp.contacts.index')}
