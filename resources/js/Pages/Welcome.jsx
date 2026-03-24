@@ -14,9 +14,11 @@ export default function Welcome({ auth }) {
             <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-xl border-b border-gray-100 flex items-center h-20 px-8">
                 <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
                     <div className="flex items-center gap-3 group cursor-pointer">
-                        <div className="w-10 h-10 bg-[#0B1F2A] rounded-xl flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110">
-                            <MessageSquare className="w-6 h-6" />
-                        </div>
+                        <img 
+                            src="/images/logo-concept.png" 
+                            alt="MsgOps Logo" 
+                            className="w-10 h-10 object-contain shadow-lg transition-transform group-hover:scale-110"
+                        />
                         <span className="text-xl font-black text-[#0B1F2A] tracking-tighter uppercase italic">MsgOps</span>
                     </div>
 
@@ -196,9 +198,11 @@ export default function Welcome({ auth }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24">
                         <div className="lg:col-span-1">
                             <div className="flex items-center gap-3 mb-8">
-                                <div className="w-10 h-10 bg-[#0B1F2A] rounded-xl flex items-center justify-center text-white shadow-lg">
-                                    <MessageSquare className="w-6 h-6" />
-                                </div>
+                                <img 
+                                    src="/images/logo-concept.png" 
+                                    alt="MsgOps Logo" 
+                                    className="w-10 h-10 object-contain shadow-lg"
+                                />
                                 <span className="text-xl font-black text-[#0B1F2A] tracking-tighter uppercase italic">MsgOps</span>
                             </div>
                             <p className="text-sm text-gray-500 font-medium leading-relaxed mb-8">
