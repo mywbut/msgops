@@ -57,6 +57,22 @@ export default function Connect() {
                                     Link your Meta Business Account to start sending automated broadcasts, campaigns, and managing your Team Inbox.
                                 </p>
 
+                                <div className="bg-amber-50 border border-amber-100 p-6 rounded-2xl mb-8 text-left">
+                                    <div className="flex gap-4">
+                                        <div className="p-2 bg-amber-100 rounded-lg text-amber-600 h-fit">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-black text-amber-700 uppercase tracking-widest mb-1">Direct Meta Billing</p>
+                                            <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
+                                                Meta charges for conversations directly via your linked payment method in Business Manager. 
+                                                <br />
+                                                <strong>MsgOps Wallet credits are for our platform service fee only.</strong>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <button
                                     onClick={launchWhatsAppSignup}
                                     className="bg-[#1877F2] hover:bg-[#0c63d4] text-white font-bold py-4 px-10 rounded-2xl shadow-lg shadow-[#1877F2]/20 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-3 w-full"

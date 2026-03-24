@@ -50,10 +50,11 @@ class ProcessWhatsAppWebhook implements ShouldQueue
 
                     if ($org) {
                         $category = $statusData['pricing']['category'] ?? 'utility';
-                        // Logic: Marketing ₹0.72, Utility ₹0.30, etc. (Can be made dynamic in settings)
-                        $cost = ($category === 'marketing') ? 0.72 : 0.30;
+                        // Logic: Platform Service Fee (e.g. ₹0.10 flat per conversation)
+                        // Note: Meta charges the customer directly via their linked credit card.
+                        $cost = 0.10; 
                         
-                        $org->withdraw($cost, $category, "WhatsApp Conversation: " . ucfirst($category));
+                        $org->withdraw($cost, $category, "Service Fee: " . ucfirst($category));
                         Log::info("Deducted {$cost} from Org {$org->id} for {$category} conversation.");
                     }
                 }
