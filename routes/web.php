@@ -27,14 +27,19 @@ Route::get('/data-deletion', function () {
     return Inertia::render('DataDeletion');
 })->name('data.deletion');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])
+    ->middleware(['auth', 'verified'])->name('settings');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Organization Settings
+    Route::patch('/settings/organization', [\App\Http\Controllers\SettingsController::class, 'updateOrganization'])->name('settings.org.update');
 
     // WhatsApp Team Inbox
     Route::get('/whatsapp/inbox', [\App\Http\Controllers\TeamInboxController::class, 'index'])->name('whatsapp.inbox');
