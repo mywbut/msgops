@@ -217,9 +217,12 @@ export default function Dashboard({ isConnected = false, stats = {}, chartData =
                                 <h3 className="text-2xl font-bold mb-4 font-heading leading-tight underline underline-offset-8 decoration-[#25D366]">Power your growth with MsgOps Pro</h3>
                                 <p className="text-sm text-gray-400 font-medium mb-8 leading-relaxed max-w-sm">Unlock smart automation, multi-agent inbox, and white-labeled customer support today.</p>
                                 <div className="mt-auto">
-                                    <button className="w-full bg-white text-[#0B1F2A] py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
+                                    <Link 
+                                        href={route('billing.index')}
+                                        className="w-full bg-white text-[#0B1F2A] py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-center block"
+                                    >
                                         UPGRADE ACCOUNT
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                             {/* Decorative elements */}

@@ -177,7 +177,12 @@ export default function SettingsPage({ organization, config, team, webhook_url }
                                                 <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1">Active Plan</p>
                                                 <p className="text-lg font-bold text-[#4F46E5]">MsgOps PRO (Trial)</p>
                                             </div>
-                                            <button className="bg-[#4F46E5] text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest">Upgrade</button>
+                                            <Link 
+                                                href={route('billing.index')}
+                                                className="bg-[#4F46E5] text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-600 transition-all"
+                                            >
+                                                Upgrade
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>
