@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Index({ contacts, tags, contactTags, filters, isConnected }) {
     const { data, setData, get, post, patch, delete: destroy, processing } = useForm({
@@ -17,6 +17,31 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
     const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [selectedContact, setSelectedContact] = useState(null);
+
+    useEffect(() => {
+        if (selectedContact) {
+            contactForm.setData({
+                name: selectedContact.name || '',
+                phone_number: selectedContact.phone_number || '',
+                tags: selectedContact.tags || [],
+            });
+        } else {
+            contactForm.reset();
+        }
+    }, [selectedContact, isAddModalOpen]);
+
+    const handleContactSubmit = (e) => {
+        e.preventDefault();
+        if (selectedContact) {
+            contactForm.patch(route('whatsapp.contacts.update', selectedContact.id), {
+                onSuccess: () => { setIsAddModalOpen(false); contactForm.reset(); }
+            });
+        } else {
+            contactForm.post(route('whatsapp.contacts.store'), {
+                onSuccess: () => { setIsAddModalOpen(false); contactForm.reset(); }
+            });
+        }
+    };
 
     const handleSearch = (e) => {
         e.preventDefault();
