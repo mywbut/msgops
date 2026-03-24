@@ -34,25 +34,25 @@ export default function AuthenticatedLayout({ header, children }) {
                                     href={route('whatsapp.inbox')}
                                     active={route().current('whatsapp.inbox')}
                                 >
-                                    Team Inbox
+                                    Inbox
                                 </NavLink>
                                 <NavLink
                                     href={route('whatsapp.connect')}
                                     active={route().current('whatsapp.connect')}
                                 >
-                                    Connect WhatsApp
+                                    Connect
                                 </NavLink>
                                 <NavLink
                                     href={route('whatsapp.campaigns.index')}
                                     active={route().current('whatsapp.campaigns.*')}
                                 >
-                                    Campaigns & Broadcasts
+                                    Campaigns
                                 </NavLink>
                                 <NavLink
                                     href={route('whatsapp.contacts.index')}
                                     active={route().current('whatsapp.contacts.index')}
                                 >
-                                    Contacts (CRM)
+                                    Contacts
                                 </NavLink>
                                 <NavLink
                                     href={route('whatsapp.templates.index')}
@@ -64,7 +64,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     href={route('whatsapp.logs')}
                                     active={route().current('whatsapp.logs')}
                                 >
-                                    Message Logs
+                                    Logs
                                 </NavLink>
                                 <NavLink
                                     href={route('whatsapp.automation')}
@@ -201,25 +201,25 @@ export default function AuthenticatedLayout({ header, children }) {
                             href={route('whatsapp.inbox')}
                             active={route().current('whatsapp.inbox')}
                         >
-                            Team Inbox
+                            Inbox
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('whatsapp.connect')}
                             active={route().current('whatsapp.connect')}
                         >
-                            Connect WhatsApp
+                            Connect
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('whatsapp.campaigns.index')}
                             active={route().current('whatsapp.campaigns.*')}
                         >
-                            Campaigns & Broadcasts
+                            Campaigns
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('whatsapp.contacts.index')}
                             active={route().current('whatsapp.contacts.index')}
                         >
-                            Contacts (CRM)
+                            Contacts
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('whatsapp.templates.index')}
@@ -231,7 +231,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             href={route('whatsapp.logs')}
                             active={route().current('whatsapp.logs')}
                         >
-                            Message Logs
+                            Logs
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('whatsapp.automation')}
