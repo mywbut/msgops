@@ -178,8 +178,8 @@ export default function SettingsPage({ organization, config, team, webhook_url }
                                                 <p className="text-lg font-bold text-[#4F46E5]">MsgOps PRO (Trial)</p>
                                             </div>
                                             <Link 
-                                                href={route('billing.index')}
-                                                className="bg-[#4F46E5] text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-600 transition-all"
+                                                href={route('billing.credits')}
+                                                className="bg-[#4F46E5] text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-600 transition-all flex items-center gap-2"
                                             >
                                                 Upgrade
                                             </Link>

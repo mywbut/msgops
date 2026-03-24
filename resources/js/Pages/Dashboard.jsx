@@ -218,7 +218,7 @@ export default function Dashboard({ isConnected = false, stats = {}, chartData =
                                 <p className="text-sm text-gray-400 font-medium mb-8 leading-relaxed max-w-sm">Unlock smart automation, multi-agent inbox, and white-labeled customer support today.</p>
                                 <div className="mt-auto">
                                     <Link 
-                                        href={route('billing.index')}
+                                        href={route('billing.credits')}
                                         className="w-full bg-white text-[#0B1F2A] py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-95 transition-all text-center block"
                                     >
                                         UPGRADE ACCOUNT
