@@ -83,7 +83,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/whatsapp/campaigns', [\App\Http\Controllers\CampaignController::class, 'store'])->name('whatsapp.campaigns.store');
 
     // Billing
-    Route::get('/billing', [\App\Http\Controllers\BillingController::class, 'credits'])->name('billing.credits');
+    Route::get('/billing', [\App\Http\Controllers\BillingController::class, 'index'])->name('billing.index');
+    Route::get('/billing/credits', [\App\Http\Controllers\BillingController::class, 'credits'])->name('billing.credits');
     Route::post('/billing/buy-credits', [\App\Http\Controllers\BillingController::class, 'buyCredits'])->name('billing.buy-credits');
     Route::post('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
 });

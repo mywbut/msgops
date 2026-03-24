@@ -8,6 +8,14 @@ use Inertia\Inertia;
 
 class BillingController extends Controller
 {
+    public function index(Request $request)
+    {
+        $org = $request->user()->organization;
+        return Inertia::render('Billing/Index', [
+            'organization' => $org,
+        ]);
+    }
+
     public function credits(Request $request)
     {
         $org = $request->user()->organization;
