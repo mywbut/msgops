@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('contacts', function (Blueprint $table) {
             $table->timestamp('last_message_at')->nullable();
-            $table->timestamps(); // Add created_at and updated_at since it was missing
+            $table->timestamp('updated_at')->nullable();
         });
     }
 
