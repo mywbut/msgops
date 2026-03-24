@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import { 
     Settings, Shield, Users, Globe, ExternalLink, 
     Bell, CreditCard, Code, Copy, Check, Save
