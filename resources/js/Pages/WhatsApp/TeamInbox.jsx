@@ -3,7 +3,7 @@ import { Head, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
-export default function TeamInbox() {
+export default function TeamInbox({ selectedContactId }) {
     const { auth } = usePage().props;
     const [conversations, setConversations] = useState([]);
     const [selectedContact, setSelectedContact] = useState(null);
@@ -43,6 +43,12 @@ export default function TeamInbox() {
             const response = await axios.get(route('api.whatsapp.conversations'));
             setConversations(response.data.conversations);
             setIsLoading(false);
+            
+            // Handle pre-selected contact from CRM
+            if (selectedContactId && !selectedContact) {
+                const preselected = response.data.conversations.find(c => c.id === selectedContactId);
+                if (preselected) setSelectedContact(preselected);
+            }
         } catch (error) {
             console.error('Error fetching conversations:', error);
         }
@@ -185,7 +191,7 @@ export default function TeamInbox() {
                                                     : 'bg-white text-gray-800 rounded-tl-none border border-gray-50'
                                                 }`}>
                                                     <div className="text-sm leading-relaxed">
-                                                        {msg.content?.body || JSON.stringify(msg.content)}
+                                                        {msg.content?.body || (msg.type === 'template' ? `Template: ${msg.content?.template}` : `Sent ${msg.type}`)}
                                                     </div>
                                                     <div className={`text-[10px] mt-1 flex justify-end items-center gap-1 ${isOutbound ? 'text-white/70' : 'text-gray-400'}`}>
                                                         {msg.time}

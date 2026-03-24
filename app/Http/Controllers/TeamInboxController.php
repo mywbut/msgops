@@ -18,6 +18,7 @@ class TeamInboxController extends Controller
 
         return Inertia::render('WhatsApp/TeamInbox', [
             'isConnected' => $config ? true : false,
+            'selectedContactId' => $request->query('contactId'),
         ]);
     }
 
