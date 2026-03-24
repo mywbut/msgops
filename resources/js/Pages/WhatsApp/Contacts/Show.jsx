@@ -168,7 +168,9 @@ export default function Show({ contact, tags }) {
                                                     <span className="text-[10px] text-gray-300">•</span>
                                                     <span className="text-[10px] text-gray-400 font-medium">{new Date(msg.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}</span>
                                                 </div>
-                                                <p className="text-sm text-[#0B1F2A] leading-relaxed break-words whitespace-pre-wrap">{msg.content}</p>
+                                                <p className="text-sm text-[#0B1F2A] leading-relaxed break-words whitespace-pre-wrap">
+                                                    {msg.content?.body || (msg.type === 'template' ? `Template: ${msg.content?.template}` : `Sent ${msg.type}`)}
+                                                </p>
                                                 {msg.status && (
                                                     <div className="mt-3 pt-3 border-t border-gray-50 flex items-center gap-1.5">
                                                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Status:</span>
