@@ -122,7 +122,7 @@ class WhatsAppController extends Controller
                         ['name' => 'Unknown']
                     );
 
-                    Message::create([
+                    $message = Message::create([
                         'org_id' => $user->org_id,
                         'contact_id' => $contact->id,
                         'wam_id' => $response->json()['messages'][0]['id'] ?? null,
@@ -135,6 +135,8 @@ class WhatsAppController extends Controller
                         ],
                         'status' => 'sent',
                     ]);
+
+                    $contact->update(['last_message_at' => now()]);
                 } else {
                     Log::error("Meta API Failure for {$recipient}: " . $response->body());
                     $results['fail_count']++;

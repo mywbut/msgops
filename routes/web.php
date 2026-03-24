@@ -59,8 +59,10 @@ Route::middleware('auth')->group(function () {
     
     Route::name('whatsapp.contacts.')->prefix('whatsapp/contacts')->group(function () {
         Route::get('/', [\App\Http\Controllers\ContactController::class, 'index'])->name('index');
+        Route::get('/export', [\App\Http\Controllers\ContactController::class, 'export'])->name('export');
         Route::post('/', [\App\Http\Controllers\ContactController::class, 'store'])->name('store');
         Route::post('/import', [\App\Http\Controllers\ContactController::class, 'import'])->name('import');
+        Route::get('/{contact}', [\App\Http\Controllers\ContactController::class, 'show'])->name('show');
         Route::patch('/{contact}', [\App\Http\Controllers\ContactController::class, 'update'])->name('update');
         Route::delete('/{contact}', [\App\Http\Controllers\ContactController::class, 'destroy'])->name('destroy');
     });

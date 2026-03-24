@@ -77,7 +77,10 @@ class ProcessWhatsAppWebhook implements ShouldQueue
             // 2. Upsert Contact in CRM
             $contact = Contact::updateOrCreate(
                 ['org_id' => $orgId, 'phone_number' => $from],
-                ['name' => $entry['contacts'][0]['profile']['name'] ?? 'Unknown']
+                [
+                    'name' => $entry['contacts'][0]['profile']['name'] ?? 'Unknown',
+                    'last_message_at' => now()
+                ]
             );
 
             // 3. Log Inbound Message

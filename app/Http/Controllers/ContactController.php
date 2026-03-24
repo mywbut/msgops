@@ -30,28 +30,70 @@ class ContactController extends Controller
             $query->whereJsonContains('tags', $tag);
         }
 
-        $contacts = [];
+        $contacts = $query->orderBy('last_message_at', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20)
+            ->withQueryString();
 
-        if ($config) {
-            $contacts = $query->orderBy('created_at', 'desc')
-                ->limit(500)
-                ->get()
-                ->map(function ($contact) {
-                    return [
-                        'id' => $contact->id,
-                        'name' => $contact->name ?? 'Unknown',
-                        'phone_number' => $contact->phone_number,
-                        'message_count' => $contact->messages_count,
-                        'tags' => $contact->tags ?? [],
-                        'created_at' => date('M d, Y', strtotime($contact->created_at)),
-                    ];
-                });
+        $tags = \App\Models\Tag::where('org_id', $user->org_id)->get();
+        // Fallback: also get tags from contacts if not in tags table
+        $existingContactTags = Contact::where('org_id', $user->org_id)
+            ->whereNotNull('tags')
+            ->get()
+            ->pluck('tags')
+            ->flatten()
+            ->unique()
+            ->values();
+
+        return Inertia::render('WhatsApp/Contacts/Index', [
+            'contacts' => $contacts,
+            'tags' => $tags,
+            'contactTags' => $existingContactTags,
+            'filters' => $request->only(['search', 'tag']),
+            'isConnected' => $config ? true : false,
+        ]);
+    }
+
+    public function show(Request $request, Contact $contact)
+    {
+        $user = $request->user();
+        if ($contact->org_id !== $user->org_id) {
+            abort(403);
         }
 
-        return Inertia::render('WhatsApp/Contacts', [
-            'isConnected' => $config ? true : false,
-            'contacts' => $contacts,
-            'filters' => $request->only(['search', 'tag']),
+        $contact->load(['messages' => function($q) {
+            $q->orderBy('created_at', 'desc')->limit(50);
+        }]);
+
+        return Inertia::render('WhatsApp/Contacts/Show', [
+            'contact' => $contact,
+            'tags' => \App\Models\Tag::where('org_id', $user->org_id)->get(),
+        ]);
+    }
+
+    public function export(Request $request)
+    {
+        $user = $request->user();
+        $contacts = Contact::where('org_id', $user->org_id)->get();
+
+        $filename = "contacts_export_" . date('Y-m-d') . ".csv";
+        $handle = fopen('php://output', 'w');
+        fputcsv($handle, ['Name', 'Phone', 'Tags', 'Created At', 'Last Message']);
+
+        foreach ($contacts as $contact) {
+            fputcsv($handle, [
+                $contact->name,
+                $contact->phone_number,
+                is_array($contact->tags) ? implode(', ', $contact->tags) : '',
+                $contact->created_at,
+                $contact->last_message_at
+            ]);
+        }
+
+        return response()->streamDownload(function() use ($handle) {
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
         ]);
     }
 
@@ -130,6 +172,7 @@ class ContactController extends Controller
         $header = array_shift($data);
         $nameIdx = array_search('name', array_map('strtolower', $header));
         $phoneIdx = array_search('phone', array_map('strtolower', $header));
+        $tagsIdx = array_search('tags', array_map('strtolower', $header));
 
         if ($phoneIdx === false) {
             return back()->withErrors(['file' => 'The CSV must contain a "phone" column.']);
@@ -141,10 +184,16 @@ class ContactController extends Controller
 
             $phoneNumber = preg_replace('/[^0-9]/', '', $row[$phoneIdx]);
             $name = ($nameIdx !== false) ? ($row[$nameIdx] ?? null) : null;
+            $tags = ($tagsIdx !== false && !empty($row[$tagsIdx])) 
+                ? array_map('trim', explode(',', $row[$tagsIdx])) 
+                : [];
 
             Contact::updateOrCreate(
                 ['org_id' => $user->org_id, 'phone_number' => $phoneNumber],
-                ['name' => $name]
+                [
+                    'name' => $name,
+                    'tags' => $tags
+                ]
             );
             $imported++;
         }

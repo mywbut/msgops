@@ -58,6 +58,7 @@ class SendCampaignJob implements ShouldQueue
                         'status' => 'SENT',
                         'message_id' => $response->json()['messages'][0]['id'] ?? null,
                     ]);
+                    $campaignContact->contact->update(['last_message_at' => now()]);
                     $campaign->increment('sent_count');
                 } else {
                     $campaignContact->update([
