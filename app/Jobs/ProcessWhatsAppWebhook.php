@@ -42,6 +42,22 @@ class ProcessWhatsAppWebhook implements ShouldQueue
             if ($statuses && isset($statuses[0])) {
                 $statusData = $statuses[0];
                 $message = Message::where('wam_id', $statusData['id'])->first();
+                
+                // Credit Deduction Logic (Aggregator Model)
+                if (isset($statusData['pricing']) && $statusData['pricing']['billable']) {
+                    $org = WhatsappConfig::where('phone_number_id', $metadata['phone_number_id'] ?? null)
+                        ->first()?->organization;
+
+                    if ($org) {
+                        $category = $statusData['pricing']['category'] ?? 'utility';
+                        // Logic: Marketing ₹0.72, Utility ₹0.30, etc. (Can be made dynamic in settings)
+                        $cost = ($category === 'marketing') ? 0.72 : 0.30;
+                        
+                        $org->withdraw($cost, $category, "WhatsApp Conversation: " . ucfirst($category));
+                        Log::info("Deducted {$cost} from Org {$org->id} for {$category} conversation.");
+                    }
+                }
+
                 if ($message) {
                     $updateData = ['status' => $statusData['status']];
                     if (isset($statusData['errors'])) {
