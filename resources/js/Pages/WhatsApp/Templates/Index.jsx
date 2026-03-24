@@ -2,101 +2,167 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 
 export default function Index({ isConnected, templates, apiError, success, flashError }) {
+    const getStatusStyle = (status) => {
+        switch (status) {
+            case 'APPROVED':
+                return 'bg-green-100 text-green-700 border-green-200';
+            case 'REJECTED':
+                return 'bg-red-100 text-red-700 border-red-200';
+            case 'PENDING':
+            case 'IN_APPEAL':
+                return 'bg-amber-100 text-amber-700 border-amber-200';
+            default:
+                return 'bg-gray-100 text-gray-700 border-gray-200';
+        }
+    };
+
     return (
         <AuthenticatedLayout
             header={
-                <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800 dark:text-gray-200">
-                        Template Messages
-                    </h2>
-                    {isConnected && (
-                        <Link
-                            href={route('whatsapp.templates.create')}
-                            className="bg-[#1877F2] hover:bg-[#0c63d4] text-white px-4 py-2 rounded shadow text-sm font-medium transition"
-                        >
-                            + New Template
-                        </Link>
-                    )}
+                <div className="flex justify-between items-center bg-white py-4 px-6 border-b border-gray-100">
+                    <div>
+                        <h2 className="text-2xl font-bold text-[#0B1F2A] font-heading">Template Messages</h2>
+                        <p className="text-sm text-gray-400 mt-1">Manage and sync your WhatsApp message templates</p>
+                    </div>
+                    <div className="flex gap-3">
+                        {isConnected && (
+                            <>
+                                <button className="px-4 py-2 text-sm font-bold text-[#4F46E5] bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-all border border-indigo-100 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                    Sync Templates
+                                </button>
+                                <Link
+                                    href={route('whatsapp.templates.create')}
+                                    className="bg-[#25D366] hover:bg-[#128C7E] text-white px-6 py-2 rounded-xl shadow-lg shadow-[#25D366]/20 text-sm font-bold transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                                    New Template
+                                </Link>
+                            </>
+                        )}
+                    </div>
                 </div>
             }
         >
             <Head title="WhatsApp Templates" />
 
-            <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div className="py-8 px-6">
+                <div className="mx-auto max-w-7xl">
                     
-                    {success && (
-                        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded text-green-800 dark:text-green-200">
-                            {success}
-                        </div>
-                    )}
-                    
-                    {(apiError || flashError) && (
-                        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded text-red-800 dark:text-red-200">
-                            {apiError || flashError}
-                        </div>
-                    )}
+                    {/* Alerts Stack */}
+                    <div className="space-y-4 mb-8">
+                        {success && (
+                            <div className="p-4 bg-green-50 border border-green-100 rounded-2xl flex items-center gap-3 text-green-800 shadow-sm animate-fade-in">
+                                <svg className="w-5 h-5 text-[#25D366]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                                <span className="text-sm font-medium">{success}</span>
+                            </div>
+                        )}
+                        
+                        {(apiError || flashError) && (
+                            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-800 shadow-sm">
+                                <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+                                <span className="text-sm font-medium">{apiError || flashError}</span>
+                            </div>
+                        )}
 
-                    {!isConnected && (
-                        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded text-yellow-800 dark:text-yellow-200">
-                            <p className="font-semibold">WhatsApp is not connected.</p>
-                            <p className="text-sm">You must connect your WhatsApp Business Account before managing templates.</p>
-                        </div>
-                    )}
-
-                    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
-                        <div className="p-6 text-gray-900 dark:text-gray-100">
-                            
-                            {isConnected && templates.length === 0 && !apiError && (
-                                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                                    <p>No templates found for this WhatsApp Business Account.</p>
-                                    <Link href={route('whatsapp.templates.create')} className="text-[#1877F2] hover:underline mt-2 inline-block">Create your first template</Link>
+                        {!isConnected && (
+                            <div className="p-6 bg-amber-50 border border-amber-100 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-3 bg-amber-100 rounded-2xl text-amber-600">
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-[#0B1F2A]">WhatsApp is not connected</p>
+                                        <p className="text-sm text-gray-500">Connect your account to create and manage templates.</p>
+                                    </div>
                                 </div>
-                            )}
+                                <Link href={route('whatsapp.connect')} className="px-6 py-2 bg-[#0B1F2A] text-white rounded-xl text-sm font-bold hover:bg-black transition-all">Go to Connection Page</Link>
+                            </div>
+                        )}
+                    </div>
 
-                            {isConnected && templates.length > 0 && (
-                                <div className="overflow-x-auto">
-                                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                        <thead className="bg-gray-50 dark:bg-gray-900/50">
-                                            <tr>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Name</th>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Category</th>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Language</th>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Status</th>
-                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Preview</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
-                                            {templates.map((tpl) => {
-                                                const bodyComponent = tpl.components?.find(c => c.type === 'BODY');
-                                                const statusColor = tpl.status === 'APPROVED' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                                                                    : (tpl.status === 'REJECTED' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' 
-                                                                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400');
-                                                return (
-                                                    <tr key={tpl.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition">
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{tpl.name}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{tpl.category}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{tpl.language}</td>
-                                                        <td className="px-6 py-4 whitespace-nowrap">
-                                                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColor}`}>
-                                                                {tpl.status}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs truncate" title={bodyComponent?.text}>
+                    {/* Templates Table Container */}
+                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                        {isConnected && templates.length === 0 && !apiError ? (
+                            <div className="text-center py-24 px-6">
+                                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                </div>
+                                <h3 className="text-xl font-bold text-[#0B1F2A] mb-2">No Templates Found</h3>
+                                <p className="text-gray-400 mb-8 max-w-xs mx-auto">Create your first template message to start reaching out to your customers.</p>
+                                <Link 
+                                    href={route('whatsapp.templates.create')} 
+                                    className="px-8 py-3 bg-[#25D366] text-white rounded-xl font-bold shadow-lg shadow-[#25D366]/20 transition-all hover:-translate-y-0.5"
+                                >
+                                    Create Template
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-gray-50/50 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                            <th className="px-8 py-4">Template Name</th>
+                                            <th className="px-6 py-4">Category</th>
+                                            <th className="px-6 py-4 text-center">Language</th>
+                                            <th className="px-6 py-4 text-center">Status</th>
+                                            <th className="px-6 py-4">Message Preview</th>
+                                            <th className="px-8 py-4 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50">
+                                        {(templates || []).map((tpl) => {
+                                            const bodyComponent = tpl.components?.find(c => c.type === 'BODY');
+                                            return (
+                                                <tr key={tpl.id} className="group hover:bg-gray-50/30 transition-all">
+                                                    <td className="px-8 py-5">
+                                                        <div className="font-bold text-[#0B1F2A] text-sm">{tpl.name}</div>
+                                                        <div className="text-[10px] text-gray-400 mt-0.5">ID: {tpl.id || 'Meta Sync Pending'}</div>
+                                                    </td>
+                                                    <td className="px-6 py-5">
+                                                        <span className="text-xs font-semibold px-3 py-1 bg-gray-100 text-gray-600 rounded-lg">
+                                                            {tpl.category}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-5 text-center">
+                                                        <span className="text-xs font-bold text-gray-500">{tpl.language}</span>
+                                                    </td>
+                                                    <td className="px-6 py-5 text-center">
+                                                        <span className={`px-3 py-1 text-[10px] font-bold rounded-lg border ${getStatusStyle(tpl.status)}`}>
+                                                            {tpl.status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-5 max-w-xs">
+                                                        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed" title={bodyComponent?.text}>
                                                             {bodyComponent?.text || 'No text body'}
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-
-                        </div>
+                                                        </p>
+                                                    </td>
+                                                    <td className="px-8 py-5 text-right">
+                                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                            <button className="p-2 text-gray-400 hover:text-[#4F46E5] hover:bg-indigo-50 rounded-lg transition-all" title="Send Campaign">
+                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                                                            </button>
+                                                            <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete">
+                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
+                .font-heading { font-family: 'Poppins', sans-serif; }
+                body { font-family: 'Inter', sans-serif; }
+            `}} />
         </AuthenticatedLayout>
     );
 }

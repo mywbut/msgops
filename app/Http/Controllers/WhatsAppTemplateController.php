@@ -69,7 +69,11 @@ class WhatsAppTemplateController extends Controller
             'name' => 'required|string|regex:/^[a-z0-9_]+$/|max:512',
             'category' => 'required|in:MARKETING,UTILITY,AUTHENTICATION',
             'language' => 'required|string|max:10',
+            'header_type' => 'nullable|in:NONE,TEXT,IMAGE,DOCUMENT,VIDEO',
+            'header_text' => 'nullable|string|max:60',
             'body' => 'required|string|max:1024',
+            'footer' => 'nullable|string|max:60',
+            'buttons' => 'nullable|array|max:3',
         ]);
 
         $user = $request->user();
@@ -80,16 +84,56 @@ class WhatsAppTemplateController extends Controller
         }
 
         try {
+            $components = [];
+
+            // Add Header Component
+            if ($request->header_type && $request->header_type !== 'NONE') {
+                $header = [
+                    'type' => 'HEADER',
+                    'format' => $request->header_type,
+                ];
+                
+                if ($request->header_type === 'TEXT') {
+                    $header['text'] = $request->header_text;
+                }
+                
+                $components[] = $header;
+            }
+
+            // Add Body Component
+            $components[] = [
+                'type' => 'BODY',
+                'text' => $request->body,
+            ];
+
+            // Add Footer Component
+            if ($request->footer) {
+                $components[] = [
+                    'type' => 'FOOTER',
+                    'text' => $request->footer,
+                ];
+            }
+
+            // Add Buttons Component
+            if ($request->buttons && count($request->buttons) > 0) {
+                $buttons = [];
+                foreach ($request->buttons as $btn) {
+                    $buttons[] = [
+                        'type' => 'QUICK_REPLY',
+                        'text' => $btn['text'],
+                    ];
+                }
+                $components[] = [
+                    'type' => 'BUTTONS',
+                    'buttons' => $buttons,
+                ];
+            }
+
             $payload = [
                 'name' => $request->name,
                 'language' => $request->language,
                 'category' => $request->category,
-                'components' => [
-                    [
-                        'type' => 'BODY',
-                        'text' => $request->body
-                    ]
-                ]
+                'components' => $components,
             ];
 
             $response = Http::withToken($config->access_token)
@@ -100,7 +144,8 @@ class WhatsAppTemplateController extends Controller
             }
 
             Log::error('Template Creation Failed: ' . $response->body());
-            $errorMsg = json_decode($response->body(), true)['error']['message'] ?? 'Failed to create template on Meta.';
+            $errorData = $response->json();
+            $errorMsg = $errorData['error']['message'] ?? 'Failed to create template on Meta.';
             
             return redirect()->back()->with('error', $errorMsg)->withInput();
             
