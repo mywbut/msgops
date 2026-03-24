@@ -3,35 +3,34 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function Index({ contacts, tags, contactTags, filters, isConnected }) {
+    const { data, setData, get, post, patch, delete: destroy, processing } = useForm({
+        search: filters.search || '',
+        tag: filters.tag || '',
+    });
+
     const contactForm = useForm({
         name: '',
         phone_number: '',
         tags: [],
     });
 
-    useState(() => {
-        if (selectedContact) {
-            contactForm.setData({
-                name: selectedContact.name || '',
-                phone_number: selectedContact.phone_number || '',
-                tags: selectedContact.tags || [],
-            });
-        } else {
-            contactForm.reset();
-        }
-    }, [selectedContact, isAddModalOpen]);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [selectedContact, setSelectedContact] = useState(null);
 
-    const handleContactSubmit = (e) => {
+    const handleSearch = (e) => {
         e.preventDefault();
-        if (selectedContact) {
-            contactForm.patch(route('whatsapp.contacts.update', selectedContact.id), {
-                onSuccess: () => { setIsAddModalOpen(false); contactForm.reset(); }
-            });
-        } else {
-            contactForm.post(route('whatsapp.contacts.store'), {
-                onSuccess: () => { setIsAddModalOpen(false); contactForm.reset(); }
-            });
-        }
+        get(route('whatsapp.contacts.index'), { preserveState: true });
+    };
+
+    const handleTagFilter = (tagName) => {
+        setData('tag', tagName === data.tag ? '' : tagName);
+        get(route('whatsapp.contacts.index', { ...filters, tag: tagName === data.tag ? '' : tagName }), { preserveState: true });
+    };
+
+    const getTagColor = (tagName) => {
+        const tag = tags.find(t => t.name === tagName);
+        return tag ? tag.color : '#64748b'; // Default slate
     };
 
     return (
