@@ -124,6 +124,8 @@ class WhatsAppAuthController extends Controller
             'wabaId' => $wabaId ?? 'N/A',
             'phoneNumber' => $phoneNumber ?? 'N/A',
             'phoneStatus' => $phoneStatus ?? 'Active',
+            'messagingLimit' => '1,000 conversations per 24 hours',
+            'accountQuality' => 'High',
             'flashError' => session('error'),
             'flashSuccess' => session('success'),
         ]);

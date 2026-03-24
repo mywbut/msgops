@@ -4,7 +4,7 @@
     "/build/assets/ApplicationLogo-xMpxFOcX.js"
   ],
   "resources/js/Components/Checkbox.jsx": [
-    "/build/assets/Login-JzmTxkYr.js"
+    "/build/assets/Login-DO0I992h.js"
   ],
   "resources/js/Components/DangerButton.jsx": [
     "/build/assets/DangerButton-YnwuyCoh.js"
@@ -40,25 +40,25 @@
     "/build/assets/AuthenticatedLayout-MDwtenIS.js"
   ],
   "resources/js/Layouts/GuestLayout.jsx": [
-    "/build/assets/GuestLayout-XMlsEBkD.js"
+    "/build/assets/GuestLayout-D_wdbizt.js"
   ],
   "resources/js/Pages/Auth/ConfirmPassword.jsx": [
-    "/build/assets/ConfirmPassword-C8y1Hma7.js"
+    "/build/assets/ConfirmPassword-BsOn0gyq.js"
   ],
   "resources/js/Pages/Auth/ForgotPassword.jsx": [
-    "/build/assets/ForgotPassword-PqpzZvez.js"
+    "/build/assets/ForgotPassword-BmRw5caD.js"
   ],
   "resources/js/Pages/Auth/Login.jsx": [
-    "/build/assets/Login-JzmTxkYr.js"
+    "/build/assets/Login-DO0I992h.js"
   ],
   "resources/js/Pages/Auth/Register.jsx": [
-    "/build/assets/Register-V-ZgsNN0.js"
+    "/build/assets/Register-JmVpARVO.js"
   ],
   "resources/js/Pages/Auth/ResetPassword.jsx": [
-    "/build/assets/ResetPassword-Chn7SGlo.js"
+    "/build/assets/ResetPassword-Dqscv-8F.js"
   ],
   "resources/js/Pages/Auth/VerifyEmail.jsx": [
-    "/build/assets/VerifyEmail-V-5uwRBv.js"
+    "/build/assets/VerifyEmail-Azw2rUuQ.js"
   ],
   "resources/js/Pages/Dashboard.jsx": [
     "/build/assets/Dashboard-B9g5zUrt.js"
@@ -91,7 +91,7 @@
     "/build/assets/Automation-CKvLT7OH.js"
   ],
   "resources/js/Pages/WhatsApp/Connect.jsx": [
-    "/build/assets/Connect-ByzFgZZD.js"
+    "/build/assets/Connect-Dvx2ff9S.js"
   ],
   "resources/js/Pages/WhatsApp/Contacts.jsx": [
     "/build/assets/Contacts-DpcQ389Q.js"
