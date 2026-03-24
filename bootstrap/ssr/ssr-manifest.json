@@ -90,6 +90,12 @@
   "resources/js/Pages/WhatsApp/Automation.jsx": [
     "/build/assets/Automation-CKvLT7OH.js"
   ],
+  "resources/js/Pages/WhatsApp/Campaigns/Create.jsx": [
+    "/build/assets/Create-yeoRnZzP.js"
+  ],
+  "resources/js/Pages/WhatsApp/Campaigns/Index.jsx": [
+    "/build/assets/Index-BuFZwkXk.js"
+  ],
   "resources/js/Pages/WhatsApp/Connect.jsx": [
     "/build/assets/Connect-Dvx2ff9S.js"
   ],

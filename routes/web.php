@@ -69,6 +69,11 @@ Route::middleware('auth')->group(function () {
         $config = \App\Models\WhatsappConfig::where('org_id', request()->user()->org_id)->first();
         return Inertia::render('WhatsApp/Automation', ['isConnected' => $config ? true : false]);
     })->name('whatsapp.automation');
+
+    // WhatsApp Campaigns
+    Route::get('/whatsapp/campaigns', [\App\Http\Controllers\CampaignController::class, 'index'])->name('whatsapp.campaigns.index');
+    Route::get('/whatsapp/campaigns/create', [\App\Http\Controllers\CampaignController::class, 'create'])->name('whatsapp.campaigns.create');
+    Route::post('/whatsapp/campaigns', [\App\Http\Controllers\CampaignController::class, 'store'])->name('whatsapp.campaigns.store');
 });
 
 require __DIR__ . '/auth.php';
