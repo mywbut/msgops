@@ -68,7 +68,7 @@ class DashboardController extends Controller
             ],
             'chartData' => $chartData,
             'recentCampaigns' => $recentCampaigns,
-            'waba_status' => $config->status ?? 'Disconnected'
+            'waba_status' => $config->phone_status ?? 'Disconnected'
         ]);
     }
 }
