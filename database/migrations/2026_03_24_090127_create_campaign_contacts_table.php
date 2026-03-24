@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('campaign_contacts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('campaign_id')->constrained()->onDelete('cascade');
-            $table->foreignId('contact_id')->constrained()->onDelete('cascade');
+            $table->uuid('contact_id');
+            $table->foreign('contact_id')->references('id')->on('contacts')->onDelete('cascade');
             $table->string('status')->default('PENDING'); // PENDING, SENT, DELIVERED, READ, FAILED
             $table->string('message_id')->nullable()->index(); // Meta API message ID
             $table->text('error')->nullable();
