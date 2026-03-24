@@ -8,6 +8,10 @@ import { useState } from 'react';
 
 export default function SettingsPage({ organization, config, team, webhook_url }) {
     const [activeTab, setActiveTab] = useState('general');
+    const [copied, setCopied] = useState(false);
+    const { data, setData, patch, processing, errors } = useForm({
+        name: organization.name || '',
+    });
 
     const copyWebhook = () => {
         navigator.clipboard.writeText(webhook_url);
