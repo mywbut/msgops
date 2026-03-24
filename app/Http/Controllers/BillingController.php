@@ -2,55 +2,37 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CreditTransaction;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Organization;
 
 class BillingController extends Controller
 {
-    public function index()
+    public function credits(Request $request)
     {
-        $user = auth()->user();
-        $organization = Organization::find($user->org_id);
-
-        return Inertia::render('WhatsApp/Billing/index', [
-            'organization' => $organization,
-            'plans' => [
-                [
-                    'id' => 'growth',
-                    'name' => 'Growth',
-                    'price' => 49,
-                    'features' => ['1000 Messages/mo', 'Basic Analytics', '1 Team Member'],
-                    'current' => $organization->plan === 'growth'
-                ],
-                [
-                    'id' => 'pro',
-                    'name' => 'Pro',
-                    'price' => 99,
-                    'features' => ['5000 Messages/mo', 'Advanced Analytics', '5 Team Members', 'Priority Support'],
-                    'current' => $organization->plan === 'pro' || !$organization->plan
-                ],
-                [
-                    'id' => 'business',
-                    'name' => 'Business',
-                    'price' => 249,
-                    'features' => ['Unlimited Messages', 'Custom Reports', 'Unlimited Team Members', 'API Access'],
-                    'current' => $organization->plan === 'business'
-                ]
-            ]
+        $org = $request->user()->organization;
+        
+        return Inertia::render('Billing/Credits', [
+            'balance' => $org->wallet_balance,
+            'currency' => $org->currency,
+            'freeServiceConversations' => $org->free_service_conversations,
+            'transactions' => $org->creditTransactions()
+                ->latest()
+                ->paginate(10),
         ]);
     }
 
-    public function upgrade(Request $request)
+    public function buyCredits(Request $request)
     {
         $request->validate([
-            'plan' => 'required|string|in:growth,pro,business'
+            'amount' => 'required|numeric|min:500',
         ]);
 
-        $user = auth()->user();
-        $organization = Organization::find($user->org_id);
-        $organization->update(['plan' => $request->plan]);
+        $org = $request->user()->organization;
+        
+        // Mocking a successful payment for now
+        $org->deposit($request->amount, 'Credit Top-up via UI');
 
-        return redirect()->back()->with('success', 'Plan upgraded successfully!');
+        return back()->with('success', 'Credits added successfully!');
     }
 }

@@ -14,6 +14,9 @@ class Organization extends Model
     protected $fillable = [
         'name',
         'plan_tier',
+        'wallet_balance',
+        'currency',
+        'free_service_conversations',
     ];
 
     public function whatsappConfig()
@@ -29,5 +32,38 @@ class Organization extends Model
     public function messages()
     {
         return $this->hasMany(Message::class, 'org_id');
+    }
+
+    public function creditTransactions()
+    {
+        return $this->hasMany(CreditTransaction::class);
+    }
+
+    public function deposit($amount, $description = null, $metadata = [])
+    {
+        $this->increment('wallet_balance', $amount);
+        
+        return $this->creditTransactions()->create([
+            'amount' => $amount,
+            'type' => 'topup',
+            'description' => $description ?? 'Credit Top-up',
+            'metadata' => $metadata,
+        ]);
+    }
+
+    public function withdraw($amount, $category = null, $description = null)
+    {
+        if ($this->wallet_balance < $amount) {
+            return false;
+        }
+
+        $this->decrement('wallet_balance', $amount);
+
+        return $this->creditTransactions()->create([
+            'amount' => -$amount,
+            'type' => 'deduction',
+            'category' => $category,
+            'description' => $description ?? 'Conversation Fee',
+        ]);
     }
 }
