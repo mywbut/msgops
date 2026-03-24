@@ -4,64 +4,64 @@
     "/build/assets/ApplicationLogo-xMpxFOcX.js"
   ],
   "resources/js/Components/Checkbox.jsx": [
-    "/build/assets/Login-CBCK4JoK.js"
+    "/build/assets/Login-JzmTxkYr.js"
   ],
   "resources/js/Components/DangerButton.jsx": [
-    "/build/assets/DeleteUserForm-DasR_Sgc.js"
+    "/build/assets/DangerButton-YnwuyCoh.js"
   ],
   "resources/js/Components/Dropdown.jsx": [
-    "/build/assets/AuthenticatedLayout-DK4QHw_4.js"
+    "/build/assets/AuthenticatedLayout-MDwtenIS.js"
   ],
   "resources/js/Components/InputError.jsx": [
-    "/build/assets/TextInput-DmkubRXE.js"
+    "/build/assets/InputError-2JjWc6nJ.js"
   ],
   "resources/js/Components/InputLabel.jsx": [
     "/build/assets/InputLabel-DDs2XNYP.js"
   ],
   "resources/js/Components/Modal.jsx": [
-    "/build/assets/DeleteUserForm-DasR_Sgc.js"
+    "/build/assets/SecondaryButton-B05Cq_fG.js"
   ],
   "resources/js/Components/NavLink.jsx": [
-    "/build/assets/AuthenticatedLayout-DK4QHw_4.js"
+    "/build/assets/AuthenticatedLayout-MDwtenIS.js"
   ],
   "resources/js/Components/PrimaryButton.jsx": [
     "/build/assets/PrimaryButton-DDF1xnxF.js"
   ],
   "resources/js/Components/ResponsiveNavLink.jsx": [
-    "/build/assets/AuthenticatedLayout-DK4QHw_4.js"
+    "/build/assets/AuthenticatedLayout-MDwtenIS.js"
   ],
   "resources/js/Components/SecondaryButton.jsx": [
-    "/build/assets/DeleteUserForm-DasR_Sgc.js"
+    "/build/assets/SecondaryButton-B05Cq_fG.js"
   ],
   "resources/js/Components/TextInput.jsx": [
-    "/build/assets/TextInput-DmkubRXE.js"
+    "/build/assets/TextInput-D0qTZeQv.js"
   ],
   "resources/js/Layouts/AuthenticatedLayout.jsx": [
-    "/build/assets/AuthenticatedLayout-DK4QHw_4.js"
+    "/build/assets/AuthenticatedLayout-MDwtenIS.js"
   ],
   "resources/js/Layouts/GuestLayout.jsx": [
     "/build/assets/GuestLayout-XMlsEBkD.js"
   ],
   "resources/js/Pages/Auth/ConfirmPassword.jsx": [
-    "/build/assets/ConfirmPassword-C5z4vo2G.js"
+    "/build/assets/ConfirmPassword-C8y1Hma7.js"
   ],
   "resources/js/Pages/Auth/ForgotPassword.jsx": [
-    "/build/assets/ForgotPassword-DsEPxP0K.js"
+    "/build/assets/ForgotPassword-PqpzZvez.js"
   ],
   "resources/js/Pages/Auth/Login.jsx": [
-    "/build/assets/Login-CBCK4JoK.js"
+    "/build/assets/Login-JzmTxkYr.js"
   ],
   "resources/js/Pages/Auth/Register.jsx": [
-    "/build/assets/Register-DZlS1StF.js"
+    "/build/assets/Register-V-ZgsNN0.js"
   ],
   "resources/js/Pages/Auth/ResetPassword.jsx": [
-    "/build/assets/ResetPassword-FE_-TZW-.js"
+    "/build/assets/ResetPassword-Chn7SGlo.js"
   ],
   "resources/js/Pages/Auth/VerifyEmail.jsx": [
     "/build/assets/VerifyEmail-V-5uwRBv.js"
   ],
   "resources/js/Pages/Dashboard.jsx": [
-    "/build/assets/Dashboard-DPTbbwIr.js"
+    "/build/assets/Dashboard-B9g5zUrt.js"
   ],
   "resources/js/Pages/DataDeletion.jsx": [
     "/build/assets/DataDeletion-BiTlfrXi.js"
@@ -70,16 +70,16 @@
     "/build/assets/PrivacyPolicy-lpRpnXad.js"
   ],
   "resources/js/Pages/Profile/Edit.jsx": [
-    "/build/assets/Edit-BSxX3ceS.js"
+    "/build/assets/Edit-WL-Pu3Pi.js"
   ],
   "resources/js/Pages/Profile/Partials/DeleteUserForm.jsx": [
-    "/build/assets/DeleteUserForm-DasR_Sgc.js"
+    "/build/assets/DeleteUserForm-CuM4Ziol.js"
   ],
   "resources/js/Pages/Profile/Partials/UpdatePasswordForm.jsx": [
-    "/build/assets/UpdatePasswordForm-CwhF3nns.js"
+    "/build/assets/UpdatePasswordForm-DxSyIAO3.js"
   ],
   "resources/js/Pages/Profile/Partials/UpdateProfileInformationForm.jsx": [
-    "/build/assets/UpdateProfileInformationForm-GzmQdpBg.js"
+    "/build/assets/UpdateProfileInformationForm-Q_3xU49D.js"
   ],
   "resources/js/Pages/TermsOfService.jsx": [
     "/build/assets/TermsOfService-C6JxmEZf.js"
@@ -88,16 +88,28 @@
     "/build/assets/Welcome-wbQb3jwF.js"
   ],
   "resources/js/Pages/WhatsApp/Automation.jsx": [
-    "/build/assets/Automation-CYg3A2pv.js"
+    "/build/assets/Automation-CKvLT7OH.js"
   ],
   "resources/js/Pages/WhatsApp/Connect.jsx": [
-    "/build/assets/Connect-Hdp_7a4u.js"
+    "/build/assets/Connect-ByzFgZZD.js"
+  ],
+  "resources/js/Pages/WhatsApp/Contacts.jsx": [
+    "/build/assets/Contacts-DpcQ389Q.js"
   ],
   "resources/js/Pages/WhatsApp/MessageLogs.jsx": [
-    "/build/assets/MessageLogs-C8DMBSWX.js"
+    "/build/assets/MessageLogs-DKfPZoo4.js"
   ],
   "resources/js/Pages/WhatsApp/SendMessage.jsx": [
-    "/build/assets/SendMessage-QRRloHGJ.js"
+    "/build/assets/SendMessage-B-8MZSkY.js"
+  ],
+  "resources/js/Pages/WhatsApp/TeamInbox.jsx": [
+    "/build/assets/TeamInbox-CWzDnVxJ.js"
+  ],
+  "resources/js/Pages/WhatsApp/Templates/Create.jsx": [
+    "/build/assets/Create-Yy0kEz0L.js"
+  ],
+  "resources/js/Pages/WhatsApp/Templates/Index.jsx": [
+    "/build/assets/Index-DmlChB_7.js"
   ],
   "resources/js/ssr.jsx": [],
   "vendor/tightenco/ziggy/dist/index.js": []

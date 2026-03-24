@@ -36,6 +36,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // WhatsApp Team Inbox
+    Route::get('/whatsapp/inbox', [\App\Http\Controllers\TeamInboxController::class, 'index'])->name('whatsapp.inbox');
+    Route::get('/api/whatsapp/conversations', [\App\Http\Controllers\TeamInboxController::class, 'getConversations'])->name('api.whatsapp.conversations');
+    Route::get('/api/whatsapp/messages/{contactId}', [\App\Http\Controllers\TeamInboxController::class, 'getMessages'])->name('api.whatsapp.messages');
+
     // WhatsApp Connect Route
     Route::get('/whatsapp/connect', [WhatsAppAuthController::class, 'showConnectPage'])->name('whatsapp.connect');
     Route::delete('/whatsapp/disconnect', [WhatsAppAuthController::class, 'disconnect'])->name('whatsapp.disconnect');

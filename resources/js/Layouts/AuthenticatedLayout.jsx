@@ -31,6 +31,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Dashboard
                                 </NavLink>
                                 <NavLink
+                                    href={route('whatsapp.inbox')}
+                                    active={route().current('whatsapp.inbox')}
+                                >
+                                    Team Inbox
+                                </NavLink>
+                                <NavLink
                                     href={route('whatsapp.connect')}
                                     active={route().current('whatsapp.connect')}
                                 >
@@ -169,6 +175,12 @@ export default function AuthenticatedLayout({ header, children }) {
                             active={route().current('dashboard')}
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('whatsapp.inbox')}
+                            active={route().current('whatsapp.inbox')}
+                        >
+                            Team Inbox
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('whatsapp.connect')}
