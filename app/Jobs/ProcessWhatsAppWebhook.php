@@ -30,109 +30,159 @@ class ProcessWhatsAppWebhook implements ShouldQueue
     public function handle(): void
     {
         try {
-            $entry = $this->payload['entry'][0]['changes'][0]['value'] ?? null;
-            if (!$entry)
-                return;
+            $entries = $this->payload['entry'] ?? [];
+            Log::info("Processing WhatsApp Webhook Payload with " . count($entries) . " entries.");
 
-            $metadata = $entry['metadata'] ?? null;
-            $messages = $entry['messages'] ?? null;
-            $statuses = $entry['statuses'] ?? null;
+            foreach ($entries as $entry) {
+                $changes = $entry['changes'] ?? [];
+                foreach ($changes as $change) {
+                    $value = $change['value'] ?? null;
+                    if (!$value) continue;
 
-            // Handle Status Updates (sent, delivered, read, failed)
-            if ($statuses && isset($statuses[0])) {
-                $statusData = $statuses[0];
-                $message = Message::where('wam_id', $statusData['id'])->first();
-                
-                // Credit Deduction Logic (Aggregator Model)
-                if (isset($statusData['pricing']) && $statusData['pricing']['billable']) {
-                    $org = WhatsappConfig::where('phone_number_id', $metadata['phone_number_id'] ?? null)
-                        ->first()?->organization;
-
-                    if ($org) {
-                        $category = $statusData['pricing']['category'] ?? 'utility';
-                        // Logic: Platform Service Fee (e.g. ₹0.10 flat per conversation)
-                        // Note: Meta charges the customer directly via their linked credit card.
-                        $cost = 0.10; 
-                        
-                        $org->withdraw($cost, $category, "Service Fee: " . ucfirst($category));
-                        Log::info("Deducted {$cost} from Org {$org->id} for {$category} conversation.");
-                    }
+                    $this->processChange($value);
                 }
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to process WhatsApp Webhook Job: " . $e->getMessage(), [
+                'exception' => $e
+            ]);
+        }
+    }
 
-                if ($message) {
-                    $updateData = ['status' => $statusData['status']];
-                    if (isset($statusData['errors'])) {
-                        $updateData['error'] = $statusData['errors'][0];
-                    }
-                    $message->update($updateData);
-                }
+    /**
+     * Process a single change value from the webhook.
+     */
+    private function processChange(array $value): void
+    {
+        $metadata = $value['metadata'] ?? null;
+        $messages = $value['messages'] ?? null;
+        $statuses = $value['statuses'] ?? null;
+
+        // 1. Handle Status Updates (sent, delivered, read, failed)
+        if ($statuses && isset($statuses[0])) {
+            foreach ($statuses as $statusData) {
+                $this->handleStatusUpdate($statusData, $metadata);
+            }
+            return;
+        }
+
+        // 2. Handle Incoming Messages
+        if ($messages && isset($messages[0])) {
+            $incomingPhoneNumberId = $metadata['phone_number_id'] ?? null;
+            if (!$incomingPhoneNumberId) {
+                Log::warning("Webhook value missing phone_number_id metadata.");
                 return;
             }
 
-            if (!$metadata || !isset($metadata['phone_number_id']) || !$messages || !isset($messages[0])) {
-                return;
-            }
-
-            $incomingPhoneNumberId = $metadata['phone_number_id'];
-            $messageData = $messages[0];
-            $from = $messageData['from'];
-            $msgBody = $messageData['text']['body'] ?? null;
-
-            if (!$msgBody)
-                return;
-
-            // 1. Find the Organization (Tenant) based on phone_number_id
+            // Find the Organization (Tenant) based on phone_number_id
             $config = WhatsappConfig::where('phone_number_id', $incomingPhoneNumberId)->first();
-
             if (!$config) {
                 Log::warning("Webhook received for unknown phone_number_id: {$incomingPhoneNumberId}");
                 return;
             }
 
-            $orgId = $config->org_id;
-
-            // 2. Upsert Contact in CRM
-            $contact = Contact::updateOrCreate(
-                ['org_id' => $orgId, 'phone_number' => $from],
-                [
-                    'name' => $entry['contacts'][0]['profile']['name'] ?? 'Unknown',
-                    'last_message_at' => now()
-                ]
-            );
-
-            // 3. Log Inbound Message
-            Message::create([
-                'org_id' => $orgId,
-                'contact_id' => $contact->id,
-                'wam_id' => $messageData['id'],
-                'direction' => 'inbound',
-                'type' => $messageData['type'],
-                'content' => ['body' => $msgBody],
-                'status' => 'delivered',
-            ]);
-
-            // 4. Send Auto-Reply (MVP Logic)
-            $input = trim(strtolower($msgBody));
-            $replyText = "Received: '{$msgBody}'. Exploring msgops.in SaaS Platform!";
-            if (in_array($input, ['hi', 'hello'])) {
-                $replyText = "Hello! I am your automated SaaS assistant.";
+            foreach ($messages as $index => $messageData) {
+                $contactInfo = $value['contacts'][$index] ?? ($value['contacts'][0] ?? null);
+                $this->handleIncomingMessage($messageData, $contactInfo, $config);
             }
-
-            $this->sendWhatsAppMessage($from, $replyText, $config);
-
-            // 5. Log Outbound Message
-            Message::create([
-                'org_id' => $orgId,
-                'contact_id' => $contact->id,
-                'direction' => 'outbound',
-                'type' => 'text',
-                'content' => ['body' => $replyText],
-                'status' => 'sent',
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error("Failed to process WhatsApp Webhook: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Handle a status update for a message.
+     */
+    private function handleStatusUpdate(array $statusData, ?array $metadata): void
+    {
+        $message = Message::where('wam_id', $statusData['id'])->first();
+
+        // Credit Deduction Logic (Aggregator Model)
+        if (isset($statusData['pricing']) && $statusData['pricing']['billable']) {
+            $phoneId = $metadata['phone_number_id'] ?? null;
+            $org = WhatsappConfig::where('phone_number_id', $phoneId)->first()?->organization;
+
+            if ($org) {
+                $category = $statusData['pricing']['category'] ?? 'utility';
+                $cost = 0.10; // Platform Service Fee
+                $org->withdraw($cost, $category, "Service Fee: " . ucfirst($category));
+                Log::info("Deducted {$cost} from Org {$org->id} for {$category} conversation.");
+            }
+        }
+
+        if ($message) {
+            $updateData = ['status' => $statusData['status']];
+            if (isset($statusData['errors'])) {
+                $updateData['error'] = $statusData['errors'][0];
+            }
+            $message->update($updateData);
+        }
+    }
+
+    /**
+     * Handle an incoming message from a contact.
+     */
+    private function handleIncomingMessage(array $messageData, ?array $contactInfo, WhatsappConfig $config): void
+    {
+        $from = $messageData['from'];
+        $type = $messageData['type'];
+        $orgId = $config->org_id;
+
+        // Extract Message Body/Content
+        $msgBody = null;
+        if ($type === 'text') {
+            $msgBody = $messageData['text']['body'] ?? null;
+        } elseif ($type === 'interactive') {
+            $interactive = $messageData['interactive'];
+            $msgBody = $interactive['button_reply']['title'] ?? $interactive['list_reply']['title'] ?? "[Interactive Message]";
+        } elseif ($type === 'button') {
+            $msgBody = $messageData['button']['text'] ?? "[Button Click]";
+        } else {
+            $msgBody = "[" . ucfirst($type) . " message]";
+        }
+
+        Log::info("Handling incoming {$type} message from {$from} for Org {$orgId}");
+
+        // 1. Upsert Contact in CRM
+        $contact = Contact::updateOrCreate(
+            ['org_id' => $orgId, 'phone_number' => $from],
+            [
+                'name' => $contactInfo['profile']['name'] ?? 'Unknown',
+                'last_message_at' => now()
+            ]
+        );
+
+        // 2. Log Inbound Message
+        Message::create([
+            'org_id' => $orgId,
+            'contact_id' => $contact->id,
+            'wam_id' => $messageData['id'],
+            'direction' => 'inbound',
+            'type' => $type,
+            'content' => ['body' => $msgBody, 'raw' => $messageData],
+            'status' => 'delivered',
+            'created_at' => now(), // Explicitly set created_at
+        ]);
+
+        // 3. Send Auto-Reply (MVP Logic)
+        $input = trim(strtolower($msgBody ?? ''));
+        if ($input === '') return;
+
+        $replyText = "Received: '{$msgBody}'. Exploring msgops.in SaaS Platform!";
+        if (in_array($input, ['hi', 'hello'])) {
+            $replyText = "Hello! I am your automated SaaS assistant.";
+        }
+
+        $this->sendWhatsAppMessage($from, $replyText, $config);
+
+        // 4. Log Outbound Message
+        Message::create([
+            'org_id' => $orgId,
+            'contact_id' => $contact->id,
+            'direction' => 'outbound',
+            'type' => 'text',
+            'content' => ['body' => $replyText],
+            'status' => 'sent',
+            'created_at' => now(), // Explicitly set created_at
+        ]);
     }
 
     /**
@@ -142,12 +192,16 @@ class ProcessWhatsAppWebhook implements ShouldQueue
     {
         $url = "https://graph.facebook.com/v18.0/{$config->phone_number_id}/messages";
 
-        Http::withToken($config->access_token)->post($url, [
-            'messaging_product' => 'whatsapp',
-            'recipient_type' => 'individual',
-            'to' => $to,
-            'type' => 'text',
-            'text' => ['body' => $text],
-        ]);
+        try {
+            Http::withToken($config->access_token)->post($url, [
+                'messaging_product' => 'whatsapp',
+                'recipient_type' => 'individual',
+                'to' => $to,
+                'type' => 'text',
+                'text' => ['body' => $text],
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Failed to send WhatsApp reply: " . $e->getMessage());
+        }
     }
 }
