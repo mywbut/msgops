@@ -3,7 +3,7 @@ import { Head, usePage } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
-export default function TeamInbox({ selectedContactId }) {
+export default function TeamInbox({ selectedContactId, templates = [] }) {
     const { auth } = usePage().props;
     const [conversations, setConversations] = useState([]);
     const [selectedContact, setSelectedContact] = useState(null);
@@ -13,6 +13,7 @@ export default function TeamInbox({ selectedContactId }) {
     const [newMessage, setNewMessage] = useState('');
     const [isExpired, setIsExpired] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isSendingTemplate, setIsSendingTemplate] = useState(false);
     
     const messagesEndRef = useRef(null);
 
@@ -216,17 +217,27 @@ export default function TeamInbox({ selectedContactId }) {
                             {/* Chat Footer */}
                             <div className="p-4 bg-white border-t border-gray-100">
                                 {isExpired ? (
-                                    <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-center">
-                                        <p className="text-sm text-amber-700 mb-3 font-medium">
-                                            The 24-hour window has expired. You can only send template messages.
+                                    <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                                        <p className="text-sm text-amber-700 mb-4 font-medium text-center">
+                                            The 24-hour window has expired. Choose a template to reconnect.
                                         </p>
-                                        <button 
-                                            onClick={() => window.location.href = route('whatsapp.send', { contact: selectedContact.id })}
-                                            className="inline-flex items-center gap-2 bg-amber-500 text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-amber-600 transition-all shadow-sm"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg>
-                                            SELECT TEMPLATE
-                                        </button>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                            {templates.filter(t => t.status === 'APPROVED').map((template) => (
+                                                <button
+                                                    key={template.id}
+                                                    disabled={isSendingTemplate}
+                                                    onClick={() => handleSendTemplate(template.name, template.language)}
+                                                    className="flex flex-col items-start p-3 bg-white border border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-sm transition-all text-left disabled:opacity-50"
+                                                >
+                                                    <span className="text-[10px] font-bold text-amber-600 uppercase mb-1">{template.category}</span>
+                                                    <span className="text-sm font-bold text-gray-800 mb-1 truncate w-full">{template.name.replace(/_/g, ' ')}</span>
+                                                    <span className="text-[10px] text-gray-400">Language: {template.language}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {templates.length === 0 && (
+                                            <p className="text-xs text-gray-400 text-center py-2">No approved templates found.</p>
+                                        )}
                                     </div>
                                 ) : (
                                     <form onSubmit={handleSendMessage} className="flex gap-2">

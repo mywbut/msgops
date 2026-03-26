@@ -8,6 +8,8 @@ use App\Models\WhatsappConfig;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class TeamInboxController extends Controller
 {
@@ -16,9 +18,23 @@ class TeamInboxController extends Controller
         $user = $request->user();
         $config = WhatsappConfig::where('org_id', $user->org_id)->first();
 
+        $templates = [];
+        if ($config && $config->waba_id) {
+            try {
+                $response = Http::withToken($config->access_token)
+                    ->get("https://graph.facebook.com/v18.0/{$config->waba_id}/message_templates?limit=100");
+                if ($response->successful()) {
+                    $templates = $response->json()['data'] ?? [];
+                }
+            } catch (\Exception $e) {
+                Log::error('Fetch Templates Error in TeamInbox: ' . $e->getMessage());
+            }
+        }
+
         return Inertia::render('WhatsApp/TeamInbox', [
             'isConnected' => $config ? true : false,
             'selectedContactId' => $request->query('contactId'),
+            'templates' => $templates,
         ]);
     }
 
