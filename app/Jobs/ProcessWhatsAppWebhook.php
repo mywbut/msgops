@@ -162,27 +162,44 @@ class ProcessWhatsAppWebhook implements ShouldQueue
             'created_at' => now(), // Explicitly set created_at
         ]);
 
-        // 3. Send Auto-Reply (MVP Logic)
-        $input = trim(strtolower($msgBody ?? ''));
-        if ($input === '') return;
+        // 3. Send Auto-Reply (DYNAMIC)
+        if ($config->is_automation_enabled) {
+            $input = trim(strtolower($msgBody ?? ''));
+            if ($input !== '') {
+                $keywordsString = trim($config->automation_keywords ?? '');
+                $shouldReply = empty($keywordsString);
+                
+                if (!$shouldReply) {
+                    $keywords = array_map('trim', explode(',', strtolower($keywordsString)));
+                    foreach ($keywords as $kw) {
+                        if ($kw !== '' && str_contains($input, $kw)) {
+                            $shouldReply = true;
+                            break;
+                        }
+                    }
+                }
 
-        $replyText = "Received: '{$msgBody}'. Exploring msgops.in SaaS Platform!";
-        if (in_array($input, ['hi', 'hello'])) {
-            $replyText = "Hello! I am your automated SaaS assistant.";
+                if ($shouldReply) {
+                    $replyText = $config->automation_reply ?? "Hello! Thank you for your message.";
+                    
+                    // Simple placeholder replacement example
+                    $replyText = str_replace('{{message}}', $msgBody, $replyText);
+
+                    $this->sendWhatsAppMessage($from, $replyText, $config);
+
+                    // 4. Log Outbound Message (Only if we replied)
+                    Message::create([
+                        'org_id' => $orgId,
+                        'contact_id' => $contact->id,
+                        'direction' => 'outbound',
+                        'type' => 'text',
+                        'content' => ['body' => $replyText],
+                        'status' => 'sent',
+                        'created_at' => now(),
+                    ]);
+                }
+            }
         }
-
-        $this->sendWhatsAppMessage($from, $replyText, $config);
-
-        // 4. Log Outbound Message
-        Message::create([
-            'org_id' => $orgId,
-            'contact_id' => $contact->id,
-            'direction' => 'outbound',
-            'type' => 'text',
-            'content' => ['body' => $replyText],
-            'status' => 'sent',
-            'created_at' => now(), // Explicitly set created_at
-        ]);
 
         $contact->update(['last_message_at' => now()]);
     }
