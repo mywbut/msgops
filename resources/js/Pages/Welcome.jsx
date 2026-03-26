@@ -15,7 +15,7 @@ export default function Welcome({ auth }) {
                 <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
                     <div className="flex items-center gap-3 group cursor-pointer">
                         <img 
-                            src="/images/logo-concept.png" 
+                            src="/images/logo.png" 
                             alt="MsgOps Logo" 
                             className="w-10 h-10 object-contain shadow-lg transition-transform group-hover:scale-110"
                         />
@@ -199,7 +199,7 @@ export default function Welcome({ auth }) {
                         <div className="lg:col-span-1">
                             <div className="flex items-center gap-3 mb-8">
                                 <img 
-                                    src="/images/logo-concept.png" 
+                                    src="/images/logo.png" 
                                     alt="MsgOps Logo" 
                                     className="w-10 h-10 object-contain shadow-lg"
                                 />
