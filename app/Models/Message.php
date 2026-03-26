@@ -9,7 +9,7 @@ class Message extends Model
 {
     use HasUuids;
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'org_id',

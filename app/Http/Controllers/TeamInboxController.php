@@ -76,8 +76,8 @@ class TeamInboxController extends Controller
                     'type' => $msg->type,
                     'content' => $msg->content,
                     'status' => $msg->status,
-                    'time' => Carbon::parse($msg->created_at)->format('H:i'),
-                    'date' => Carbon::parse($msg->created_at)->format('d/m/Y'),
+                    'time' => $msg->created_at->timezone(config('app.timezone'))->format('H:i'),
+                    'date' => $msg->created_at->timezone(config('app.timezone'))->format('d/m/Y'),
                 ];
             });
 
