@@ -49,6 +49,7 @@ class WhatsAppController extends Controller
      */
     public function sendMessage(Request $request)
     {
+        Log::info("sendMessage hit", $request->all());
         $request->validate([
             'recipients' => 'required|array',
             'recipients.*' => 'required|string',
