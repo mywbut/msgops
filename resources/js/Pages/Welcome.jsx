@@ -61,7 +61,7 @@ export default function Welcome({ auth }) {
                             <span className="text-[10px] font-black text-[#4F46E5] uppercase tracking-widest">V2.0 Core Cloud API Stable Release</span>
                         </div>
                         
-                        <h1 className="text-6xl md:text-8xl font-black text-[#0B1F2A] font-heading leading-[0.9] mb-10 max-w-5xl tracking-tighter">
+                        <h1 className="text-5xl md:text-7xl font-black text-[#0B1F2A] font-heading leading-[0.9] mb-10 max-w-5xl tracking-tighter">
                             Scale Your <span className="text-[#4F46E5] underline decoration-[#25D366] decoration-8 underline-offset-8">Engagement</span> <br/> 
                             at Global Velocity.
                         </h1>
