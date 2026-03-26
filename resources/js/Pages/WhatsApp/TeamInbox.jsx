@@ -66,6 +66,28 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
     };
 
 
+    const handleSendTemplate = async (templateName, language) => {
+        if (!selectedContact) return;
+        setIsSendingTemplate(true);
+
+        try {
+            const response = await axios.post(route('whatsapp.send-message'), {
+                recipients: [selectedContact.phone_number],
+                type: 'template',
+                template_name: templateName,
+                template_language: language
+            });
+
+            if (response.data.success) {
+                fetchMessages(selectedContact.id);
+            }
+        } catch (error) {
+            console.error('Error sending template:', error);
+        } finally {
+            setIsSendingTemplate(false);
+        }
+    };
+
     const handleSendMessage = async (e) => {
         e.preventDefault();
         if (!newMessage.trim() || !selectedContact) return;
