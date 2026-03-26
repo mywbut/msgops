@@ -10,6 +10,7 @@ class Message extends Model
     use HasUuids;
 
     public $timestamps = true;
+    const UPDATED_AT = null;
 
     protected $fillable = [
         'org_id',
