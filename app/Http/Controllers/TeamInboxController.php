@@ -92,6 +92,7 @@ class TeamInboxController extends Controller
                     'type' => $msg->type,
                     'content' => $msg->content,
                     'status' => $msg->status,
+                    'error' => $msg->error,
                     'time' => $msg->created_at->timezone(config('app.timezone'))->format('H:i'),
                     'date' => $msg->created_at->timezone(config('app.timezone'))->format('d/m/Y'),
                 ];
