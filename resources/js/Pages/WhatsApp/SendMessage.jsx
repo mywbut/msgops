@@ -62,7 +62,7 @@ export default function SendMessage() {
             const payload = {
                 recipients,
                 type: msgType,
-                message: msgType === 'text' ? message : null,
+                message: msgType === 'text' ? message : (msgType === 'template' ? templateBody : null),
                 template_name: msgType === 'template' ? selectedTemplate : null,
                 template_language: msgType === 'template' ? templateData?.language : null,
                 media_url: (msgType === 'image' || msgType === 'document') ? mediaUrl : null,

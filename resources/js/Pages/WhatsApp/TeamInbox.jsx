@@ -70,12 +70,18 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
         if (!selectedContact) return;
         setIsSendingTemplate(true);
 
+        // Find template body
+        const template = templates.find(t => t.name === templateName);
+        const bodyComp = template?.components?.find(c => c.type === 'BODY');
+        const templateBody = bodyComp?.text || `Sent template: ${templateName}`;
+
         try {
             const response = await axios.post(route('whatsapp.send-message'), {
                 recipients: [selectedContact.phone_number],
                 type: 'template',
                 template_name: templateName,
-                template_language: language
+                template_language: language,
+                message: templateBody // Pass the actual template body text
             });
 
             if (response.data.success) {
