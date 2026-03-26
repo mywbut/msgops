@@ -14,6 +14,7 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
     const [isExpired, setIsExpired] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isSendingTemplate, setIsSendingTemplate] = useState(false);
+    const [showTemplates, setShowTemplates] = useState(false);
     
     const messagesEndRef = useRef(null);
 
@@ -85,6 +86,7 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
             });
 
             if (response.data.success) {
+                setShowTemplates(false); // Close manual template view
                 fetchMessages(selectedContact.id);
             }
         } catch (error) {
@@ -259,11 +261,21 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
 
                             {/* Chat Footer */}
                             <div className="p-4 bg-white border-t border-gray-100">
-                                {isExpired ? (
-                                    <div className="bg-amber-50 border border-amber-100 rounded-xl p-4">
-                                        <p className="text-sm text-amber-700 mb-4 font-medium text-center">
-                                            The 24-hour window has expired. Choose a template to reconnect.
-                                        </p>
+                                {(isExpired || showTemplates) ? (
+                                    <div className={`${isExpired ? 'bg-amber-50 border-amber-100' : 'bg-blue-50 border-blue-100'} border rounded-xl p-4 transition-all shadow-sm`}>
+                                        <div className="flex justify-between items-center mb-4">
+                                            <p className={`text-sm ${isExpired ? 'text-amber-700' : 'text-blue-700'} font-medium`}>
+                                                {isExpired ? 'The 24-hour window has expired. Choose a template to reconnect.' : 'Select a template to send:'}
+                                            </p>
+                                            {!isExpired && (
+                                                <button 
+                                                    onClick={() => setShowTemplates(false)}
+                                                    className="text-gray-400 hover:text-gray-600 p-1 hover:bg-white rounded-full transition-all"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                                </button>
+                                            )}
+                                        </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                             {templates.filter(t => t.status === 'APPROVED').map((template) => (
                                                 <button
@@ -271,9 +283,13 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
                                                     type="button"
                                                     disabled={isSendingTemplate}
                                                     onClick={() => handleSendTemplate(template.name, template.language)}
-                                                    className="flex flex-col items-start p-3 bg-white border border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-sm transition-all text-left disabled:opacity-50"
+                                                    className={`flex flex-col items-start p-3 bg-white border rounded-lg transition-all text-left disabled:opacity-50 ${
+                                                        isExpired ? 'border-amber-200 hover:border-amber-400' : 'border-blue-200 hover:border-blue-400'
+                                                    }`}
                                                 >
-                                                    <span className="text-[10px] font-bold text-amber-600 uppercase mb-1">{template.category}</span>
+                                                    <span className={`text-[10px] font-bold uppercase mb-1 ${isExpired ? 'text-amber-600' : 'text-blue-600'}`}>
+                                                        {template.category}
+                                                    </span>
                                                     <span className="text-sm font-bold text-gray-800 mb-1 truncate w-full">{template.name.replace(/_/g, ' ')}</span>
                                                     <span className="text-[10px] text-gray-400">Language: {template.language}</span>
                                                 </button>
@@ -284,7 +300,17 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
                                         )}
                                     </div>
                                 ) : (
-                                    <form onSubmit={handleSendMessage} className="flex gap-2">
+                                    <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowTemplates(true)}
+                                            className="p-3 text-gray-400 hover:text-[#25D366] hover:bg-gray-50 rounded-xl transition-all"
+                                            title="Send Template"
+                                        >
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                            </svg>
+                                        </button>
                                         <div className="flex-1 relative">
                                             <textarea
                                                 rows="1"
