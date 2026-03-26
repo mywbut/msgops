@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
@@ -65,26 +65,23 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
         }
     };
 
-    const handleSendTemplate = async (templateName, language) => {
+    const handleSendTemplate = (templateName, language) => {
         if (!selectedContact) return;
         setIsSendingTemplate(true);
 
-        try {
-            const response = await axios.post(route('whatsapp.send-message'), {
-                recipients: [selectedContact.phone_number],
-                type: 'template',
-                template_name: templateName,
-                template_language: language
-            });
-
-            if (response.data.success) {
+        router.post(route('whatsapp.send-message'), {
+            recipients: [selectedContact.phone_number],
+            type: 'template',
+            template_name: templateName,
+            template_language: language
+        }, {
+            onSuccess: () => {
                 fetchMessages(selectedContact.id);
+            },
+            onFinish: () => {
+                setIsSendingTemplate(false);
             }
-        } catch (error) {
-            console.error('Error sending template:', error);
-        } finally {
-            setIsSendingTemplate(false);
-        }
+        });
     };
 
     const handleSendMessage = async (e) => {
