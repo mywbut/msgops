@@ -23,6 +23,9 @@ class WhatsappConfig extends Model
         'phone_number',
         'phone_status',
         'is_subscribed',
+        'is_automation_enabled',
+        'automation_keywords',
+        'automation_reply',
     ];
 
     public function organization()
