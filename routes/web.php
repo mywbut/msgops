@@ -72,10 +72,9 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{contact}', [\App\Http\Controllers\ContactController::class, 'destroy'])->name('destroy');
     });
 
-    Route::get('/whatsapp/automation', function () {
-        $config = \App\Models\WhatsappConfig::where('org_id', request()->user()->org_id)->first();
-        return Inertia::render('WhatsApp/Automation', ['isConnected' => $config ? true : false]);
-    })->name('whatsapp.automation');
+    // WhatsApp Automation
+    Route::get('/whatsapp/automation', [\App\Http\Controllers\AutomationController::class, 'index'])->name('whatsapp.automation');
+    Route::post('/whatsapp/automation', [\App\Http\Controllers\AutomationController::class, 'save'])->name('whatsapp.automation.save');
 
     // WhatsApp Campaigns
     Route::get('/whatsapp/campaigns', [\App\Http\Controllers\CampaignController::class, 'index'])->name('whatsapp.campaigns.index');
