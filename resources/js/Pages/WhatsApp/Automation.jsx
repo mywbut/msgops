@@ -1,16 +1,20 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, usePage, useForm } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
 
 export default function Automation() {
-    const { isConnected } = usePage().props;
-    const [enabled, setEnabled] = useState(true);
-    const [status, setStatus] = useState('');
+    const { isConnected, config } = usePage().props;
+    const { data, setData, post, processing, recentlySuccessful } = useForm({
+        is_automation_enabled: config?.is_automation_enabled ?? false,
+        automation_keywords: config?.automation_keywords ?? 'hello, hi, help, support',
+        automation_reply: config?.automation_reply ?? "Hello 👋! Thank you for reaching out to us. Our support team will respond to your query shortly. If it's urgent, please reply with 'URGENT'.",
+    });
 
     const handleSave = (e) => {
         e.preventDefault();
-        setStatus('Automation settings saved (Demo Mode)');
-        setTimeout(() => setStatus(''), 3000);
+        post(route('whatsapp.automation.save'), {
+            preserveScroll: true,
+        });
     };
 
     return (
@@ -44,26 +48,27 @@ export default function Automation() {
                                     <input
                                         type="checkbox"
                                         className="sr-only peer"
-                                        checked={enabled}
-                                        onChange={() => setEnabled(!enabled)}
-                                        disabled={!isConnected}
+                                        checked={data.is_automation_enabled}
+                                        onChange={(e) => setData('is_automation_enabled', e.target.checked)}
+                                        disabled={!isConnected || processing}
                                     />
                                     <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#1877F2]/30 dark:peer-focus:ring-[#1877F2]/80 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#1877F2]"></div>
-                                    <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">{enabled ? 'Active' : 'Paused'}</span>
+                                    <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">{data.is_automation_enabled ? 'Active' : 'Paused'}</span>
                                 </label>
                             </div>
 
-                            <form onSubmit={handleSave} className={`space-y-6 ${!enabled || !isConnected ? 'opacity-50' : ''}`}>
+                            <form onSubmit={handleSave} className={`space-y-6 ${!data.is_automation_enabled || !isConnected ? 'opacity-50' : ''}`}>
                                 <div>
                                     <label htmlFor="trigger" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Keyword Triggers (comma separated)</label>
                                     <input
                                         type="text"
                                         id="trigger"
+                                        value={data.automation_keywords}
+                                        onChange={(e) => setData('automation_keywords', e.target.value)}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                        defaultValue="hello, hi, help, support"
-                                        disabled={!enabled || !isConnected}
+                                        disabled={!data.is_automation_enabled || !isConnected || processing}
                                     />
-                                    <p className="mt-2 text-sm text-gray-500">When a user message contains any of these words, the auto-reply will trigger.</p>
+                                    <p className="mt-2 text-sm text-gray-500">When a user message contains any of these words, the auto-reply will trigger. (Leave empty to trigger on ALL messages)</p>
                                 </div>
 
                                 <div>
@@ -71,21 +76,22 @@ export default function Automation() {
                                     <textarea
                                         id="reply_message"
                                         rows={4}
+                                        value={data.automation_reply}
+                                        onChange={(e) => setData('automation_reply', e.target.value)}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-[#1877F2] focus:ring-[#1877F2] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
-                                        defaultValue="Hello 👋! Thank you for reaching out to us. Our support team will respond to your query shortly. If it's urgent, please reply with 'URGENT'."
-                                        disabled={!enabled || !isConnected}
+                                        disabled={!data.is_automation_enabled || !isConnected || processing}
                                     />
                                 </div>
 
                                 <div className="flex items-center gap-4">
                                     <button
                                         type="submit"
-                                        disabled={!enabled || !isConnected}
+                                        disabled={!data.is_automation_enabled || !isConnected || processing}
                                         className="bg-[#1877F2] hover:bg-[#0c63d4] text-white font-bold py-2 px-6 rounded shadow transition duration-200 disabled:opacity-50"
                                     >
-                                        Save Automations
+                                        {processing ? 'Saving...' : 'Save Automations'}
                                     </button>
-                                    {status && <span className="text-sm text-green-600 dark:text-green-400">{status}</span>}
+                                    {recentlySuccessful && <span className="text-sm text-green-600 dark:text-green-400">Settings saved successfully!</span>}
                                 </div>
                             </form>
 
