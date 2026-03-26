@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, usePage, router, Link } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
@@ -224,25 +224,17 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
                                         </p>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                             {templates.filter(t => t.status === 'APPROVED').map((template) => (
-                                                <Link
+                                                <button
                                                     key={template.id}
-                                                    href={route('whatsapp.send-message')}
-                                                    method="post"
-                                                    data={{
-                                                        recipients: [selectedContact.phone_number],
-                                                        type: 'template',
-                                                        template_name: template.name,
-                                                        template_language: template.language
-                                                    }}
-                                                    as="button"
-                                                    onSuccess={() => fetchMessages(selectedContact.id)}
-                                                    preserveScroll
-                                                    className="flex flex-col items-start p-3 bg-white border border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-sm transition-all text-left"
+                                                    type="button"
+                                                    disabled={isSendingTemplate}
+                                                    onClick={() => handleSendTemplate(template.name, template.language)}
+                                                    className="flex flex-col items-start p-3 bg-white border border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-sm transition-all text-left disabled:opacity-50"
                                                 >
                                                     <span className="text-[10px] font-bold text-amber-600 uppercase mb-1">{template.category}</span>
                                                     <span className="text-sm font-bold text-gray-800 mb-1 truncate w-full">{template.name.replace(/_/g, ' ')}</span>
                                                     <span className="text-[10px] text-gray-400">Language: {template.language}</span>
-                                                </Link>
+                                                </button>
                                             ))}
                                         </div>
                                         {templates.length === 0 && (
