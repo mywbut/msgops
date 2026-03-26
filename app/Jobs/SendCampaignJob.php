@@ -43,7 +43,7 @@ class SendCampaignJob implements ShouldQueue
                     ->post("https://graph.facebook.com/v18.0/{$config->phone_number_id}/messages", [
                         'messaging_product' => 'whatsapp',
                         'recipient_type' => 'individual',
-                        'to' => $campaignContact->contact->phone,
+                        'to' => $campaignContact->contact->phone_number,
                         'type' => 'template',
                         'template' => [
                             'name' => $campaign->template_name,
@@ -54,17 +54,54 @@ class SendCampaignJob implements ShouldQueue
                     ]);
 
                 if ($response->successful()) {
+                    $responseData = $response->json();
+                    $wamId = $responseData['messages'][0]['id'] ?? null;
+
                     $campaignContact->update([
                         'status' => 'SENT',
-                        'message_id' => $response->json()['messages'][0]['id'] ?? null,
+                        'message_id' => $wamId,
                     ]);
+
+                    // Log to Messages table for the Message Logs UI
+                    \App\Models\Message::create([
+                        'org_id' => $campaign->org_id,
+                        'contact_id' => $campaignContact->contact_id,
+                        'wam_id' => $wamId,
+                        'direction' => 'outbound',
+                        'type' => 'template',
+                        'content' => [
+                            'body' => "Sent template: {$campaign->template_name}",
+                            'template' => $campaign->template_name,
+                            'language' => $campaign->language,
+                        ],
+                        'status' => 'sent',
+                    ]);
+
                     $campaignContact->contact->update(['last_message_at' => now()]);
                     $campaign->increment('sent_count');
                 } else {
+                    $errorData = $response->json();
+                    $errorMsg = $errorData['error']['message'] ?? 'Unknown API error';
+
                     $campaignContact->update([
                         'status' => 'FAILED',
                         'error' => $response->body(),
                     ]);
+
+                    // Log failed message to Messages table
+                    \App\Models\Message::create([
+                        'org_id' => $campaign->org_id,
+                        'contact_id' => $campaignContact->contact_id,
+                        'direction' => 'outbound',
+                        'type' => 'template',
+                        'content' => [
+                            'body' => "Failed to send template: {$campaign->template_name}",
+                            'template' => $campaign->template_name,
+                        ],
+                        'status' => 'failed',
+                        'error' => $errorData['error'] ?? ['message' => $errorMsg],
+                    ]);
+
                     $campaign->increment('failed_count');
                 }
             } catch (\Exception $e) {
