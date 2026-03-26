@@ -68,7 +68,6 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
 
     const handleSendTemplate = async (templateName, language) => {
         if (!selectedContact) return;
-        window.alert('Sending template: ' + templateName);
         setIsSendingTemplate(true);
 
         try {
