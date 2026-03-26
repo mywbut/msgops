@@ -261,6 +261,9 @@ class WhatsAppAuthController extends Controller
                 // We don't abort the connection entirely since test numbers might throw "already registered"
             }
 
+            // 6. Subscribe the App to the WABA (Required for receiving webhooks/status updates)
+            $isSubscribed = $this->subscribeAppToWaba($wabaId, $accessToken);
+
             // 5. Save to Supabase (Database Models)
             WhatsappConfig::updateOrCreate(
                 ['org_id' => $user->org_id],
@@ -273,6 +276,7 @@ class WhatsAppAuthController extends Controller
                     'waba_name' => $wabaName,
                     'phone_number' => $phoneNumberDisplay,
                     'phone_status' => $phoneStatus,
+                    'is_subscribed' => $isSubscribed,
                 ]
             );
             return redirect()->route('whatsapp.connect')->with('success', 'Successfully connected your WhatsApp Business number!');
@@ -296,5 +300,41 @@ class WhatsAppAuthController extends Controller
         }
 
         return redirect()->route('whatsapp.connect')->with('success', 'WhatsApp account disconnected successfully.');
+    }
+
+    /**
+     * Subscribe the Meta App to the WABA to receive webhooks.
+     */
+    private function subscribeAppToWaba($wabaId, $accessToken): bool
+    {
+        try {
+            // 1. Check if already subscribed
+            $checkResponse = Http::withToken($accessToken)
+                ->get("https://graph.facebook.com/v18.0/{$wabaId}/subscribed_apps");
+            
+            if ($checkResponse->successful()) {
+                $subscribedApps = $checkResponse->json()['data'] ?? [];
+                foreach ($subscribedApps as $app) {
+                    if (($app['id'] ?? null) == env('META_APP_ID')) {
+                        return true;
+                    }
+                }
+            }
+
+            // 2. Subscribe the app
+            $response = Http::withToken($accessToken)
+                ->post("https://graph.facebook.com/v18.0/{$wabaId}/subscribed_apps");
+
+            if ($response->successful() && ($response->json()['success'] ?? false)) {
+                Log::info("Successfully subscribed app to WABA: {$wabaId}");
+                return true;
+            }
+
+            Log::error("Failed to subscribe app to WABA: {$wabaId}. Response: " . $response->body());
+            return false;
+        } catch (\Exception $e) {
+            Log::error("Error subscribing app to WABA: " . $e->getMessage());
+            return false;
+        }
     }
 }

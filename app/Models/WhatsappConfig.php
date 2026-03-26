@@ -22,6 +22,7 @@ class WhatsappConfig extends Model
         'waba_name',
         'phone_number',
         'phone_status',
+        'is_subscribed',
     ];
 
     public function organization()
