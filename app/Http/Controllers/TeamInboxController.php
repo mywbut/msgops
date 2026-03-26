@@ -31,6 +31,7 @@ class TeamInboxController extends Controller
             ->with(['messages' => function ($query) {
                 $query->orderBy('created_at', 'desc')->limit(1);
             }])
+            ->orderByDesc('last_message_at')
             ->get()
             ->map(function ($contact) {
                 $lastMsg = $contact->messages->first();
@@ -53,8 +54,7 @@ class TeamInboxController extends Controller
                     'is_expired' => $isExpired,
                     'unread_count' => 0, // TODO: Implement unread logic if needed
                 ];
-            })
-            ->sortByDesc('last_message_time');
+            });
 
         return response()->json([
             'conversations' => $contacts->values()

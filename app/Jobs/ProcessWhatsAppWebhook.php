@@ -183,6 +183,8 @@ class ProcessWhatsAppWebhook implements ShouldQueue
             'status' => 'sent',
             'created_at' => now(), // Explicitly set created_at
         ]);
+
+        $contact->update(['last_message_at' => now()]);
     }
 
     /**
