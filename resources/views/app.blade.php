@@ -4,7 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        <link rel="icon" type="image/png" href="/favicon.png">
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
+
+        <!-- Open Graph / Social Media Meta Tags -->
+        <meta property="og:title" content="Grow Your Business on WhatsApp with MsgOps">
+        <meta property="og:description" content="Send bulk messages, automate follow-ups, and manage customers easily.">
+        <meta property="og:image" content="https://msgops.in/preview.png">
+        <meta property="og:url" content="https://msgops.in">
+        <meta property="og:type" content="website">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

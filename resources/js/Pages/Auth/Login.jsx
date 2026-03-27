@@ -22,12 +22,26 @@ export default function Login({ status, canResetPassword }) {
     };
 
     return (
-        <GuestLayout>
-            <Head title="Log in" />
+        <GuestLayout
+            leftTitle="Manage Your Customers on WhatsApp Easily"
+            leftSubtitle="Send messages, follow-ups and manage chats in one place."
+            leftFooter="Used by businesses across Kolkata & West Bengal"
+            mobileHeader={
+                <div className="text-center">
+                    <h2 className="text-xl font-black text-[#0B1F2A] mb-2 leading-tight">Manage Your Customers <br /> on WhatsApp Easily</h2>
+                    <p className="text-[9px] text-[#25D366] font-black uppercase tracking-widest">Used by businesses across Kolkata</p>
+                </div>
+            }
+        >
+            <Head>
+                <title>Login to MsgOps - Manage Your WhatsApp Customers</title>
+                <meta name="description" content="Login to your MsgOps dashboard to manage WhatsApp chats, send messages, and automate customer engagement." />
+                <meta name="keywords" content="msgops login, whatsapp dashboard login, whatsapp marketing login, customer management whatsapp" />
+            </Head>
 
             <div className="mb-8">
                 <h2 className="text-3xl font-bold text-[#0B1F2A] font-heading mb-2">Welcome Back</h2>
-                <p className="text-gray-400 text-sm">Please enter your details to sign in to your workspace.</p>
+                <p className="text-gray-400 text-sm">Login to continue your WhatsApp marketing</p>
             </div>
 
             {status && (
@@ -102,7 +116,7 @@ export default function Login({ status, canResetPassword }) {
                         disabled={processing}
                         className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-[#25D366]/20 transition-all transform hover:-translate-y-0.5 disabled:opacity-50"
                     >
-                        Sign In
+                        Login to Dashboard
                     </button>
                 </div>
             </form>

@@ -1,7 +1,17 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link } from '@inertiajs/react';
 
-export default function GuestLayout({ children }) {
+export default function GuestLayout({ children, leftTitle, leftSubtitle, leftFeatures, leftFooter, leftExtra, mobileHeader }) {
+    const defaultTitle = (
+        <>
+            The World's Most <br /> 
+            <span className="text-[#25D366]">Popular WhatsApp</span> <br /> 
+            Marketing Platform.
+        </>
+    );
+
+    const defaultSubtitle = "Join 8,000+ businesses globally to scale your customer engagement with automated broadcasts and real-time support.";
+
     return (
         <div className="flex min-h-screen bg-[#F8FAFC] font-sans text-[#111827]">
             {/* Left Side: Branding & Illustration */}
@@ -11,28 +21,51 @@ export default function GuestLayout({ children }) {
                         <ApplicationLogo className="w-16 h-16 fill-[#25D366]" />
                     </Link>
                     <h1 className="text-4xl font-bold text-white mt-12 mb-6 font-heading leading-tight">
-                        The World's Most <br /> 
-                        <span className="text-[#25D366]">Popular WhatsApp</span> <br /> 
-                        Marketing Platform.
+                        {leftTitle || defaultTitle}
                     </h1>
                     <p className="text-gray-400 text-lg max-w-md">
-                        Join 8,000+ businesses globally to scale your customer engagement with automated broadcasts and real-time support.
+                        {leftSubtitle || defaultSubtitle}
                     </p>
-                </div>
 
-                <div className="relative z-10">
-                    <div className="flex gap-4 items-center">
-                        <div className="flex -space-x-2">
-                            {[1, 2, 3, 4].map(i => (
-                                <div key={i} className="w-8 h-8 rounded-full border-2 border-[#0B1F2A] bg-gray-600 flex items-center justify-center text-[10px] text-white font-bold">
-                                    U{i}
+                    {leftFeatures && (
+                        <div className="mt-12 space-y-5">
+                            {leftFeatures.map((feature, i) => (
+                                <div key={i} className="flex items-center gap-4 text-white group">
+                                    <div className="w-6 h-6 rounded-full bg-[#25D366]/20 flex items-center justify-center text-[#25D366] font-bold text-sm">
+                                        ✔
+                                    </div>
+                                    <span className="text-gray-300 font-medium text-lg">{feature}</span>
                                 </div>
                             ))}
                         </div>
-                        <div className="text-sm text-gray-400">
-                            <span className="text-white font-bold">4.8/5</span> from over <span className="text-white font-bold">1,200</span> reviews
+                    )}
+
+                    {leftExtra && (
+                        <div className="mt-10">
+                            {leftExtra}
                         </div>
-                    </div>
+                    )}
+                </div>
+
+                <div className="relative z-10">
+                    {leftFooter ? (
+                        <div className="text-xl font-semibold text-white/90 border-t border-white/10 pt-8 mt-8">
+                            {leftFooter}
+                        </div>
+                    ) : (
+                        <div className="flex gap-4 items-center">
+                            <div className="flex -space-x-2">
+                                {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-[#0B1F2A] bg-gray-600 flex items-center justify-center text-[10px] text-white font-bold">
+                                        U{i}
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="text-sm text-gray-400">
+                                <span className="text-white font-bold">4.8/5</span> from over <span className="text-white font-bold">1,200</span> reviews
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Abstract Background Element */}
@@ -49,15 +82,19 @@ export default function GuestLayout({ children }) {
             </div>
 
             {/* Right Side: Auth Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-12">
                 <div className="w-full max-w-md">
-                    <div className="lg:hidden mb-8 flex justify-center">
-                        <Link href="/">
-                            <ApplicationLogo className="w-12 h-12 fill-[#25D366]" />
-                        </Link>
+                    <div className="lg:hidden mb-6">
+                        {mobileHeader || (
+                            <div className="flex justify-center">
+                                <Link href="/">
+                                    <ApplicationLogo className="w-12 h-12 fill-[#25D366]" />
+                                </Link>
+                            </div>
+                        )}
                     </div>
                     
-                    <div className="bg-white p-8 sm:p-10 rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100">
+                    <div className="bg-white p-6 sm:p-10 rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100">
                         {children}
                     </div>
                     
