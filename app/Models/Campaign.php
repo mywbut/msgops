@@ -19,6 +19,11 @@ class Campaign extends Model
         'read_count',
         'replied_count',
         'failed_count',
+        'variables_mapping'
+    ];
+
+    protected $casts = [
+        'variables_mapping' => 'array',
     ];
 
     public function contacts()

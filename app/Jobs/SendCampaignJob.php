@@ -4,10 +4,13 @@ namespace App\Jobs;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Bus\Queueable as BusQueueable;
 
 class SendCampaignJob implements ShouldQueue
 {
-    use Queueable;
+    use InteractsWithQueue, SerializesModels, Queueable;
 
     protected $campaign;
 
@@ -39,19 +42,114 @@ class SendCampaignJob implements ShouldQueue
 
         foreach ($pendingContacts as $campaignContact) {
             try {
-                $response = \Illuminate\Support\Facades\Http::withToken($config->access_token)
-                    ->post("https://graph.facebook.com/v18.0/{$config->phone_number_id}/messages", [
-                        'messaging_product' => 'whatsapp',
-                        'recipient_type' => 'individual',
-                        'to' => $campaignContact->contact->phone_number,
-                        'type' => 'template',
-                        'template' => [
-                            'name' => $campaign->template_name,
-                            'language' => [
-                                'code' => $campaign->language,
-                            ]
+                $components = [];
+                $rawMapping = (array)($campaign->variables_mapping ?? []);
+                if (!empty($rawMapping)) {
+                    $parameters = [];
+                    // Extract numerical keys and sort them 1, 2, 3...
+                    $sortedIndices = array_keys($rawMapping);
+                    sort($sortedIndices, SORT_NUMERIC);
+
+                    foreach ($sortedIndices as $index) {
+                        $mapping = $rawMapping[$index] ?? null;
+                        if (!$mapping) continue;
+
+                        $textVal = 'Customer';
+                        if (($mapping['type'] ?? '') === 'contact') {
+                            $field = $mapping['value'] ?? 'name';
+                            $textVal = $campaignContact->contact->{$field} ?? 'Customer';
+                        } else {
+                            $textVal = $mapping['value'] ?? 'Customer';
+                        }
+
+                        if (empty(trim((string)$textVal))) {
+                            $textVal = 'Customer';
+                        }
+
+                        $parameters[] = [
+                            'type' => 'text',
+                            'text' => (string)$textVal
+                        ];
+                    }
+
+                    if (!empty($parameters)) {
+                        $components[] = [
+                            'type' => 'body',
+                            'parameters' => $parameters
+                        ];
+                    }
+                }
+
+                $payload = [
+                    'messaging_product' => 'whatsapp',
+                    'recipient_type' => 'individual',
+                    'to' => $campaignContact->contact->phone_number,
+                    'type' => 'template',
+                    'template' => [
+                        'name' => $campaign->template_name,
+                        'language' => [
+                            'code' => $campaign->language,
                         ]
-                    ]);
+                    ]
+                ];
+
+                if (!empty($components)) {
+                    $payload['template']['components'] = $components;
+                } else {
+                    if (!empty($rawMapping)) {
+                        \Illuminate\Support\Facades\Log::warning("Mapping exists but components empty for campaign {$campaign->id}");
+                    }
+                }
+
+                \Illuminate\Support\Facades\Log::info("Launching WhatsApp Campaign Message", [
+                    'campaign_id' => $campaign->id,
+                    'contact_id' => $campaignContact->contact_id,
+                    'timestamp' => now()->toDateTimeString(),
+                    'payload' => $payload
+                ]);
+
+                $response = \Illuminate\Support\Facades\Http::withToken($config->access_token)
+                    ->post("https://graph.facebook.com/v18.0/{$config->phone_number_id}/messages", $payload);
+
+                // Reconstruct full message structure for display in Inbox
+                $renderedContent = [
+                    'body' => "Sent template: {$campaign->template_name}",
+                    'header' => null,
+                    'footer' => null,
+                    'buttons' => []
+                ];
+
+                try {
+                    // Try to fetch template structure to reconstruct the text
+                    $templateResponse = \Illuminate\Support\Facades\Http::withToken($config->access_token)
+                        ->get("https://graph.facebook.com/v18.0/{$config->waba_id}/message_templates?name={$campaign->template_name}");
+                    
+                    if ($templateResponse->successful()) {
+                        $templateData = $templateResponse->json()['data'][0] ?? null;
+                        if ($templateData) {
+                            foreach ($templateData['components'] as $comp) {
+                                if ($comp['type'] === 'HEADER' && $comp['format'] === 'TEXT') {
+                                    $renderedContent['header'] = $comp['text'];
+                                } elseif ($comp['type'] === 'BODY') {
+                                    $renderedContent['body'] = $comp['text'];
+                                    // Replace variables {{1}}, {{2}}... with parameter values
+                                    if (!empty($parameters)) {
+                                        foreach ($parameters as $index => $param) {
+                                            $pNum = $index + 1;
+                                            $renderedContent['body'] = str_replace("{{{$pNum}}}", $param['text'], $renderedContent['body']);
+                                        }
+                                    }
+                                } elseif ($comp['type'] === 'FOOTER') {
+                                    $renderedContent['footer'] = $comp['text'];
+                                } elseif ($comp['type'] === 'BUTTONS') {
+                                    $renderedContent['buttons'] = $comp['buttons'];
+                                }
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::warning("Failed to render template structure for campaign logging: " . $e->getMessage());
+                }
 
                 if ($response->successful()) {
                     $responseData = $response->json();
@@ -62,18 +160,17 @@ class SendCampaignJob implements ShouldQueue
                         'message_id' => $wamId,
                     ]);
 
-                    // Log to Messages table for the Message Logs UI
+                    // Log to Messages table with FULL structure
                     \App\Models\Message::create([
                         'org_id' => $campaign->org_id,
                         'contact_id' => $campaignContact->contact_id,
                         'wam_id' => $wamId,
                         'direction' => 'outbound',
                         'type' => 'template',
-                        'content' => [
-                            'body' => "Sent template: {$campaign->template_name}",
+                        'content' => array_merge($renderedContent, [
                             'template' => $campaign->template_name,
                             'language' => $campaign->language,
-                        ],
+                        ]),
                         'status' => 'sent',
                     ]);
 
@@ -94,10 +191,9 @@ class SendCampaignJob implements ShouldQueue
                         'contact_id' => $campaignContact->contact_id,
                         'direction' => 'outbound',
                         'type' => 'template',
-                        'content' => [
-                            'body' => "Failed to send template: {$campaign->template_name}",
+                        'content' => array_merge($renderedContent, [
                             'template' => $campaign->template_name,
-                        ],
+                        ]),
                         'status' => 'failed',
                         'error' => $errorData['error'] ?? ['message' => $errorMsg],
                     ]);

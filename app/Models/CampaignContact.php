@@ -14,6 +14,10 @@ class CampaignContact extends Model
         'error',
     ];
 
+    protected $casts = [
+        'error' => 'array',
+    ];
+
     public function campaign()
     {
         return $this->belongsTo(Campaign::class);

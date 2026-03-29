@@ -1,41 +1,63 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
+import { 
+    X, 
+    MessageSquare, 
+    Send, 
+    ExternalLink, 
+    Edit3, 
+    Trash2, 
+    RefreshCw, 
+    Plus,
+    Layout,
+    Globe,
+    CheckCircle2,
+    Eye
+} from 'lucide-react';
 
 export default function Index({ isConnected, templates, apiError, success, flashError }) {
+    const [previewTemplate, setPreviewTemplate] = useState(null);
+
     const getStatusStyle = (status) => {
         switch (status) {
             case 'APPROVED':
-                return 'bg-green-100 text-green-700 border-green-200';
+                return 'bg-green-100 text-green-700 border-green-200 shadow-green-100';
             case 'REJECTED':
-                return 'bg-red-100 text-red-700 border-red-200';
+                return 'bg-red-100 text-red-700 border-red-200 shadow-red-100';
             case 'PENDING':
             case 'IN_APPEAL':
-                return 'bg-amber-100 text-amber-700 border-amber-200';
+                return 'bg-amber-100 text-amber-700 border-amber-200 shadow-amber-100';
             default:
-                return 'bg-gray-100 text-gray-700 border-gray-200';
+                return 'bg-gray-100 text-gray-700 border-gray-200 shadow-gray-100';
         }
     };
 
     return (
         <AuthenticatedLayout
             header={
-                <div className="flex justify-between items-center bg-white py-4 px-6 border-b border-gray-100">
+                <div className="flex justify-between items-center bg-white py-6 px-10 border-b border-gray-50">
                     <div>
-                        <h2 className="text-2xl font-bold text-[#0B1F2A] font-heading">Template Messages</h2>
-                        <p className="text-sm text-gray-400 mt-1">Manage and sync your WhatsApp message templates</p>
+                        <h2 className="text-3xl font-black text-[#0B1F2A] font-heading tracking-tight">Template Messages</h2>
+                        <p className="text-sm text-gray-400 mt-1 font-medium">Manage and sync your WhatsApp message templates</p>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="flex gap-4">
                         {isConnected && (
                             <>
-                                <button className="px-4 py-2 text-sm font-bold text-[#4F46E5] bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-all border border-indigo-100 flex items-center gap-2">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                <Link 
+                                    href={route('whatsapp.templates.sync')} 
+                                    method="post" 
+                                    as="button"
+                                    className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-[#4F46E5] bg-indigo-50 hover:bg-indigo-100 rounded-2xl transition-all border border-indigo-100 flex items-center gap-2 group shadow-sm active:scale-95"
+                                >
+                                    <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
                                     Sync Templates
-                                </button>
+                                </Link>
                                 <Link
                                     href={route('whatsapp.templates.create')}
-                                    className="bg-[#25D366] hover:bg-[#128C7E] text-white px-6 py-2 rounded-xl shadow-lg shadow-[#25D366]/20 text-sm font-bold transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
+                                    className="bg-[#25D366] hover:bg-[#128C7E] text-white px-8 py-2.5 rounded-2xl shadow-xl shadow-[#25D366]/20 text-[10px] uppercase font-black tracking-[0.15em] transition-all transform hover:-translate-y-0.5 flex items-center gap-3 active:scale-95"
                                 >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                                    <Plus className="w-4 h-4" />
                                     New Template
                                 </Link>
                             </>
@@ -46,110 +68,125 @@ export default function Index({ isConnected, templates, apiError, success, flash
         >
             <Head title="WhatsApp Templates" />
 
-            <div className="py-8 px-6">
-                <div className="mx-auto max-w-7xl">
+            <div className="py-10 px-10">
+                <div className="mx-auto max-w-[1400px]">
                     
                     {/* Alerts Stack */}
-                    <div className="space-y-4 mb-8">
+                    <div className="space-y-4 mb-10">
                         {success && (
                             <div className="p-4 bg-green-50 border border-green-100 rounded-2xl flex items-center gap-3 text-green-800 shadow-sm animate-fade-in">
-                                <svg className="w-5 h-5 text-[#25D366]" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                                <span className="text-sm font-medium">{success}</span>
+                                <CheckCircle2 className="w-5 h-5 text-[#25D366]" />
+                                <span className="text-sm font-bold tracking-tight">{success}</span>
                             </div>
                         )}
                         
                         {(apiError || flashError) && (
                             <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-800 shadow-sm">
                                 <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
-                                <span className="text-sm font-medium">{apiError || flashError}</span>
+                                <span className="text-sm font-bold tracking-tight">{apiError || flashError}</span>
                             </div>
                         )}
 
                         {!isConnected && (
-                            <div className="p-6 bg-amber-50 border border-amber-100 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-amber-100 rounded-2xl text-amber-600">
-                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                            <div className="p-10 bg-amber-50 border border-amber-100 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+                                <div className="flex items-center gap-6">
+                                    <div className="p-4 bg-amber-100 rounded-[1.5rem] text-amber-600 shadow-sm">
+                                        <Globe className="w-8 h-8" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-[#0B1F2A]">WhatsApp is not connected</p>
-                                        <p className="text-sm text-gray-500">Connect your account to create and manage templates.</p>
+                                        <p className="text-xl font-black text-[#0B1F2A] tracking-tight mb-1">WhatsApp is not connected</p>
+                                        <p className="text-sm text-gray-500 font-medium">Connect your account to create and manage templates seamlessly.</p>
                                     </div>
                                 </div>
-                                <Link href={route('whatsapp.connect')} className="px-6 py-2 bg-[#0B1F2A] text-white rounded-xl text-sm font-bold hover:bg-black transition-all">Go to Connection Page</Link>
+                                <Link href={route('whatsapp.connect')} className="px-10 py-3.5 bg-[#0B1F2A] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-black/10 active:scale-95">Go to Connection Page</Link>
                             </div>
                         )}
                     </div>
 
                     {/* Templates Table Container */}
-                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-black/5 border border-gray-50 overflow-hidden">
                         {isConnected && templates.length === 0 && !apiError ? (
-                            <div className="text-center py-24 px-6">
-                                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                                    <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                            <div className="text-center py-32 px-10">
+                                <div className="w-32 h-32 bg-gray-50 rounded-[3rem] flex items-center justify-center mx-auto mb-10 text-gray-200">
+                                    <MessageSquare className="w-12 h-12" />
                                 </div>
-                                <h3 className="text-xl font-bold text-[#0B1F2A] mb-2">No Templates Found</h3>
-                                <p className="text-gray-400 mb-8 max-w-xs mx-auto">Create your first template message to start reaching out to your customers.</p>
+                                <h3 className="text-3xl font-black text-[#0B1F2A] mb-4 tracking-tight">No Templates Available</h3>
+                                <p className="text-gray-400 mb-10 max-w-sm mx-auto font-medium leading-relaxed">Create your first template message to start reaching out and engaging with your customers.</p>
                                 <Link 
                                     href={route('whatsapp.templates.create')} 
-                                    className="px-8 py-3 bg-[#25D366] text-white rounded-xl font-bold shadow-lg shadow-[#25D366]/20 transition-all hover:-translate-y-0.5"
+                                    className="px-12 py-3.5 bg-[#25D366] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-[#25D366]/30 transition-all hover:-translate-y-1 active:scale-95"
                                 >
                                     Create Template
                                 </Link>
                             </div>
                         ) : (
-                            <div className="overflow-x-auto">
+                            <div className="overflow-x-auto overflow-hidden">
                                 <table className="w-full text-left">
                                     <thead>
-                                        <tr className="bg-gray-50/50 border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                            <th className="px-8 py-4">Template Name</th>
-                                            <th className="px-6 py-4">Category</th>
-                                            <th className="px-6 py-4 text-center">Language</th>
-                                            <th className="px-6 py-4 text-center">Status</th>
-                                            <th className="px-6 py-4">Message Preview</th>
-                                            <th className="px-8 py-4 text-right">Actions</th>
+                                        <tr className="bg-[#F8FAFC] border-b border-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                            <th className="px-10 py-6">Template Name</th>
+                                            <th className="px-8 py-6">Category</th>
+                                            <th className="px-8 py-6 text-center">Language</th>
+                                            <th className="px-8 py-6 text-center">Status</th>
+                                            <th className="px-10 py-6 text-right">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-50">
-                                        {(templates || []).map((tpl) => {
-                                            const bodyComponent = tpl.components?.find(c => c.type === 'BODY');
-                                            return (
-                                                <tr key={tpl.id} className="group hover:bg-gray-50/30 transition-all">
-                                                    <td className="px-8 py-5">
-                                                        <div className="font-bold text-[#0B1F2A] text-sm">{tpl.name}</div>
-                                                        <div className="text-[10px] text-gray-400 mt-0.5">ID: {tpl.id || 'Meta Sync Pending'}</div>
-                                                    </td>
-                                                    <td className="px-6 py-5">
-                                                        <span className="text-xs font-semibold px-3 py-1 bg-gray-100 text-gray-600 rounded-lg">
-                                                            {tpl.category}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-5 text-center">
-                                                        <span className="text-xs font-bold text-gray-500">{tpl.language}</span>
-                                                    </td>
-                                                    <td className="px-6 py-5 text-center">
-                                                        <span className={`px-3 py-1 text-[10px] font-bold rounded-lg border ${getStatusStyle(tpl.status)}`}>
-                                                            {tpl.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-5 max-w-xs">
-                                                        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed" title={bodyComponent?.text}>
-                                                            {bodyComponent?.text || 'No text body'}
-                                                        </p>
-                                                    </td>
-                                                    <td className="px-8 py-5 text-right">
-                                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                                            <button className="p-2 text-gray-400 hover:text-[#4F46E5] hover:bg-indigo-50 rounded-lg transition-all" title="Send Campaign">
-                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
-                                                            </button>
-                                                            <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Delete">
-                                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                            </button>
+                                    <tbody className="divide-y divide-gray-50/50">
+                                        {(templates || []).map((tpl) => (
+                                            <tr key={tpl.id} className="group hover:bg-[#F8FAFC]/50 transition-all">
+                                                <td className="px-10 py-6">
+                                                    <button 
+                                                        onClick={() => setPreviewTemplate(tpl)}
+                                                        className="text-left group/name"
+                                                    >
+                                                        <div className="font-black text-[#0B1F2A] text-base group-hover/name:text-[#25D366] transition-colors tracking-tight flex items-center gap-2">
+                                                            {tpl.name}
+                                                            <Eye className="w-3 h-3 opacity-0 group-hover/name:opacity-100 transition-opacity text-gray-300" />
                                                         </div>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                                        <div className="text-[10px] text-gray-400 mt-1 font-bold uppercase tracking-wider">ID: {tpl.id || 'Pending Meta Sync'}</div>
+                                                    </button>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <span className="text-[10px] font-black px-4 py-1.5 bg-gray-100 text-gray-600 rounded-xl uppercase tracking-widest">
+                                                        {tpl.category}
+                                                    </span>
+                                                </td>
+                                                <td className="px-8 py-6 text-center">
+                                                    <span className="text-[10px] font-black text-gray-400 tracking-widest uppercase">{tpl.language}</span>
+                                                </td>
+                                                <td className="px-8 py-6 text-center">
+                                                    <span className={`px-4 py-1.5 text-[10px] font-black rounded-xl border shadow-sm ${getStatusStyle(tpl.status)}`}>
+                                                        {tpl.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-10 py-6 text-right">
+                                                    <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
+                                                        {tpl.status === 'APPROVED' && (
+                                                            <Link
+                                                                href={route('whatsapp.campaigns.create', { template_name: tpl.name, language: tpl.language })}
+                                                                className="p-3 bg-white border border-gray-50 shadow-sm text-gray-400 hover:text-[#25D366] hover:bg-green-50 rounded-[1.25rem] transition-all transform hover:scale-110"
+                                                                title="Send Campaign"
+                                                            >
+                                                                <Send className="w-5 h-5" />
+                                                            </Link>
+                                                        )}
+                                                        <Link
+                                                            href={route('whatsapp.templates.edit', { name: tpl.name, language: tpl.language })}
+                                                            className="p-3 bg-white border border-gray-50 shadow-sm text-gray-400 hover:text-[#4F46E5] hover:bg-indigo-50 rounded-[1.25rem] transition-all transform hover:scale-110"
+                                                            title="Edit / Reuse"
+                                                        >
+                                                            <Edit3 className="w-5 h-5" />
+                                                        </Link>
+                                                        <button 
+                                                            className="p-3 bg-white border border-gray-50 shadow-sm text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-[1.25rem] transition-all transform hover:scale-110" 
+                                                            title="Delete"
+                                                        >
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -158,10 +195,113 @@ export default function Index({ isConnected, templates, apiError, success, flash
                 </div>
             </div>
 
+            {/* Template Preview Modal */}
+            {previewTemplate && (
+                <div 
+                    className="fixed inset-0 z-50 bg-[#0B1F2A]/60 backdrop-blur-md flex items-center justify-center p-6 animate-fade-in"
+                    onClick={() => setPreviewTemplate(null)}
+                >
+                    <div 
+                        className="bg-white rounded-[3rem] shadow-2xl w-full max-w-xl overflow-hidden animate-scale-up border border-white/20"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Modal Header */}
+                        <div className="px-10 py-10 flex items-center justify-between bg-white sticky top-0 z-10">
+                            <div>
+                                <h3 className="text-2xl font-black text-[#0B1F2A] tracking-tight">{previewTemplate.name.replace(/_/g, ' ')}</h3>
+                                <div className="flex gap-2 mt-2">
+                                    <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black rounded-lg uppercase tracking-widest">{previewTemplate.category}</span>
+                                    <span className="px-3 py-1 bg-gray-50 text-gray-400 text-[10px] font-black rounded-lg uppercase tracking-widest">{previewTemplate.language}</span>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setPreviewTemplate(null)}
+                                className="p-4 text-gray-400 hover:text-[#0B1F2A] hover:bg-gray-50 rounded-[1.5rem] transition-all group"
+                            >
+                                <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+                            </button>
+                        </div>
+
+                        {/* Modal Content: Visual Bubble */}
+                        <div className="p-10 bg-[#F8FAFC]">
+                            <div className="max-w-md mx-auto">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 text-center">Phone Preview</p>
+                                
+                                <div className="bg-[#E7FFDB] p-8 rounded-[2.5rem] shadow-2xl shadow-[#25D366]/10 border border-[#D0E5C9] relative mb-10">
+                                    <div className="absolute -left-2 top-10 w-6 h-6 bg-[#E7FFDB] border-l border-t border-[#D0E5C9] rotate-[-45deg]"></div>
+                                    
+                                    <div className="space-y-5">
+                                        {(previewTemplate.components || []).map((comp, idx) => {
+                                            if (comp.type === 'HEADER') {
+                                                if (comp.format === 'TEXT') {
+                                                    return <div key={idx} className="font-black text-[#0B1F2A] text-base mb-2 tracking-tight">{comp.text}</div>
+                                                }
+                                                if (comp.format === 'IMAGE' || comp.format === 'VIDEO' || comp.format === 'DOCUMENT') {
+                                                    return <div key={idx} className="w-full aspect-video bg-black/5 rounded-2xl flex items-center justify-center text-gray-300 text-[10px] font-black uppercase tracking-widest border border-black/5">{comp.format} Header</div>
+                                                }
+                                            }
+                                            if (comp.type === 'BODY') {
+                                                return <p key={idx} className="text-sm font-medium text-gray-800 leading-relaxed whitespace-pre-wrap">{comp.text}</p>
+                                            }
+                                            if (comp.type === 'FOOTER') {
+                                                return <p key={idx} className="text-[11px] text-gray-400/80 font-bold tracking-tight">{comp.text}</p>
+                                            }
+                                            if (comp.type === 'BUTTONS') {
+                                                return (
+                                                    <div key={idx} className="pt-5 border-t border-black/5 flex flex-col gap-2">
+                                                        {comp.buttons.map((b, bIdx) => (
+                                                            <div key={bIdx} className="w-full py-3 bg-white/50 rounded-2xl text-center text-blue-500 font-black text-[10px] uppercase tracking-widest border border-white/60 shadow-sm flex items-center justify-center gap-2">
+                                                                {b.type === 'URL' ? <ExternalLink className="w-3 h-3" /> : <Send className="w-3 h-3" />}
+                                                                {b.text}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )
+                                            }
+                                            return null;
+                                        })}
+                                    </div>
+                                    <div className="mt-4 text-right">
+                                        <span className="text-[9px] font-black text-[#25D366]/60 uppercase tracking-widest">11:08 PM</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <Link 
+                                        href={route('whatsapp.campaigns.create', { template_name: previewTemplate.name, language: previewTemplate.language })}
+                                        className="flex-1 py-4 bg-[#25D366] text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-[#25D366]/20 flex items-center justify-center gap-3 transition-all hover:-translate-y-1 active:scale-95"
+                                    >
+                                        Use This Template
+                                        <Send className="w-4 h-4" />
+                                    </Link>
+                                    <Link 
+                                        href={route('whatsapp.templates.edit', { name: previewTemplate.name, language: previewTemplate.language })}
+                                        className="px-6 py-4 bg-white text-[#0B1F2A] font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all active:scale-95"
+                                    >
+                                        Edit
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <style dangerouslySetInnerHTML={{ __html: `
-                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
-                .font-heading { font-family: 'Poppins', sans-serif; }
+                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&family=Inter:wght@400;500;600;700;900&display=swap');
+                .font-heading { font-family: 'Poppins', 'Inter', sans-serif; }
                 body { font-family: 'Inter', sans-serif; }
+                
+                @keyframes fade-in {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes scale-up {
+                    from { opacity: 0; transform: scale(0.95); }
+                    to { opacity: 1; transform: scale(1); }
+                }
+                .animate-fade-in { animation: fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+                .animate-scale-up { animation: scale-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
             `}} />
         </AuthenticatedLayout>
     );

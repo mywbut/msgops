@@ -67,14 +67,14 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                         <p className="text-sm text-gray-400 mt-1">Manage your audience segments and growth</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <a 
-                            href={route('whatsapp.contacts.export')} 
+                        <a
+                            href={route('whatsapp.contacts.export')}
                             className="bg-white border border-gray-200 text-[#0B1F2A] px-4 py-2 rounded-xl text-sm font-bold transition-all hover:bg-gray-50 flex items-center gap-2"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                             Export
                         </a>
-                        <button 
+                        <button
                             onClick={() => setIsImportModalOpen(true)}
                             className="bg-white border border-gray-200 text-[#0B1F2A] px-4 py-2 rounded-xl text-sm font-bold transition-all hover:bg-gray-50 flex items-center gap-2"
                         >
@@ -96,11 +96,11 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
 
             <div className="py-8 px-6">
                 <div className="mx-auto max-w-7xl">
-                    
+
                     {/* Filters & Search Row */}
                     <div className="flex flex-col md:flex-row gap-4 mb-8">
                         <form onSubmit={handleSearch} className="flex-1 relative group">
-                            <input 
+                            <input
                                 type="text"
                                 placeholder="Search by name or phone..."
                                 className="w-full bg-white border-gray-100 rounded-2xl px-12 py-3.5 text-sm focus:ring-2 focus:ring-[#25D366] transition-all shadow-sm group-hover:border-gray-200"
@@ -109,7 +109,7 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                             />
                             <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                         </form>
-                        
+
                         <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
                             {contactTags.map(tagName => (
                                 <button
@@ -153,7 +153,7 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                                         <td className="px-6 py-5">
                                             <div className="flex flex-wrap gap-1.5">
                                                 {(contact.tags || []).map(t => (
-                                                    <span 
+                                                    <span
                                                         key={t}
                                                         className="px-2 py-0.5 rounded-lg text-[9px] font-bold border border-opacity-20"
                                                         style={{ backgroundColor: `${getTagColor(t)}15`, color: getTagColor(t), borderColor: getTagColor(t) }}
@@ -180,28 +180,28 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                                         </td>
                                         <td className="px-8 py-5 text-right">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Link 
+                                                <Link
                                                     href={route('whatsapp.contacts.show', contact.id)}
                                                     className="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition-all"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                                 </Link>
-                                                <button 
-                                                    onClick={() => { 
-                                                        setSelectedContact(contact); 
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedContact(contact);
                                                         contactForm.setData({
                                                             name: contact.name || '',
                                                             phone_number: contact.phone_number || '',
                                                             tags: contact.tags || [],
                                                         });
-                                                        setIsAddModalOpen(true); 
+                                                        setIsAddModalOpen(true);
                                                     }}
                                                     className="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                 </button>
-                                                <button 
-                                                    onClick={() => { if(confirm('Delete contact?')) destroy(route('whatsapp.contacts.destroy', contact.id)); }}
+                                                <button
+                                                    onClick={() => { if (confirm('Delete contact?')) destroy(route('whatsapp.contacts.destroy', contact.id)); }}
                                                     className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -212,7 +212,7 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                                 ))}
                             </tbody>
                         </table>
-                        
+
                         {/* Pagination */}
                         {contacts.links.length > 3 && (
                             <div className="px-8 py-6 bg-gray-50/50 border-t border-gray-100 flex justify-center gap-2">
@@ -226,7 +226,7 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                                 ))}
                             </div>
                         )}
-                        
+
                         {contacts.data.length === 0 && (
                             <div className="py-24 text-center">
                                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
@@ -249,41 +249,41 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                         </button>
                         <h3 className="text-2xl font-bold text-[#0B1F2A] mb-2 font-heading">{selectedContact ? 'Edit Contact' : 'Add New Contact'}</h3>
                         <p className="text-sm text-gray-400 mb-8">{selectedContact ? 'Update contact information' : 'Create a new contact manually.'}</p>
-                        
+
                         <form onSubmit={handleContactSubmit} className="space-y-6">
                             <div>
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Full Name</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-[#25D366] transition-all"
-                                    placeholder="e.g. John Doe"
+                                    placeholder="e.g. Amit Dutta"
                                     value={contactForm.data.name}
                                     onChange={e => contactForm.setData('name', e.target.value)}
                                 />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Phone Number</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-[#25D366] transition-all"
-                                    placeholder="e.g. 1234567890"
+                                    placeholder="e.g. 919123456789"
                                     required
                                     value={contactForm.data.phone_number}
                                     onChange={e => contactForm.setData('phone_number', e.target.value)}
                                 />
-                                <p className="text-[10px] text-gray-400 mt-2 italic">Include country code without + or 00.</p>
+                                <p className="text-[10px] text-gray-400 mt-2 italic">Include country code 91.</p>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Tags (Comma separated)</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     className="w-full bg-gray-50 border-none rounded-2xl px-6 py-4 text-sm focus:ring-2 focus:ring-[#25D366] transition-all"
                                     placeholder="e.g. customer, lead, priority"
                                     value={contactForm.data.tags.join(', ')}
                                     onChange={e => contactForm.setData('tags', e.target.value.split(',').map(t => t.trim()).filter(t => t !== ''))}
                                 />
                             </div>
-                            
+
                             <button type="submit" disabled={contactForm.processing} className="w-full bg-[#0B1F2A] hover:bg-black text-white py-4 rounded-2xl font-bold shadow-xl shadow-black/10 transition-all flex justify-center items-center gap-2">
                                 {contactForm.processing ? 'Saving...' : (selectedContact ? 'Update Contact' : 'Save Contact')}
                             </button>
@@ -301,7 +301,7 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                         </button>
                         <h3 className="text-2xl font-bold text-[#0B1F2A] mb-2 font-heading">Import Contacts</h3>
                         <p className="text-sm text-gray-400 mb-8">Upload a CSV file with "phone", "name", and optional "tags" columns.</p>
-                        
+
                         <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.target); post(route('whatsapp.contacts.import'), { data: fd, forceFormData: true, onSuccess: () => setIsImportModalOpen(false) }); }} className="space-y-6">
                             <div className="border-2 border-dashed border-gray-100 rounded-3xl p-10 text-center hover:border-[#25D366] transition-colors group cursor-pointer">
                                 <input type="file" name="file" className="hidden" id="csv_import" required />
@@ -321,7 +321,8 @@ export default function Index({ contacts, tags, contactTags, filters, isConnecte
                 </div>
             )}
 
-            <style dangerouslySetInnerHTML={{ __html: `
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600;700&display=swap');
                 .font-heading { font-family: 'Poppins', sans-serif; }
                 body { font-family: 'Inter', sans-serif; }

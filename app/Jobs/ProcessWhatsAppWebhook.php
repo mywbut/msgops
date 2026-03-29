@@ -95,25 +95,40 @@ class ProcessWhatsAppWebhook implements ShouldQueue
     {
         $message = Message::where('wam_id', $statusData['id'])->first();
 
-        // Credit Deduction Logic (Aggregator Model)
-        if (isset($statusData['pricing']) && $statusData['pricing']['billable']) {
-            $phoneId = $metadata['phone_number_id'] ?? null;
-            $org = WhatsappConfig::where('phone_number_id', $phoneId)->first()?->organization;
-
-            if ($org) {
-                $category = $statusData['pricing']['category'] ?? 'utility';
-                $cost = 0.10; // Platform Service Fee
-                $org->withdraw($cost, $category, "Service Fee: " . ucfirst($category));
-                Log::info("Deducted {$cost} from Org {$org->id} for {$category} conversation.");
-            }
-        }
+        // Credit Deduction Logic Removed: Platform is now service-fee free.
+        // We only track statuses without deducting wallet balances.
 
         if ($message) {
-            $updateData = ['status' => $statusData['status']];
+            $prevStatus = $message->status;
+            $newStatus = $statusData['status'];
+            
+            $updateData = ['status' => $newStatus];
             if (isset($statusData['errors'])) {
                 $updateData['error'] = $statusData['errors'][0];
             }
             $message->update($updateData);
+
+            // Link to Campaign System
+            $campaignContact = \App\Models\CampaignContact::where('message_id', $statusData['id'])->first();
+            if ($campaignContact) {
+                $campaign = $campaignContact->campaign;
+                
+                // State machine to prevent double counting
+                if ($newStatus === 'delivered' && $campaignContact->status === 'SENT') {
+                    $campaignContact->update(['status' => 'DELIVERED']);
+                    $campaign->increment('delivered_count');
+                } elseif ($newStatus === 'read' && $campaignContact->status !== 'READ') {
+                    // If it was SENT (missed delivered webhook), increment delivered too
+                    if ($campaignContact->status === 'SENT') {
+                        $campaign->increment('delivered_count');
+                    }
+                    $campaignContact->update(['status' => 'READ']);
+                    $campaign->increment('read_count');
+                } elseif ($newStatus === 'failed' && $campaignContact->status !== 'FAILED') {
+                    $campaignContact->update(['status' => 'FAILED', 'error' => json_encode($statusData['errors'] ?? [])]);
+                    $campaign->increment('failed_count');
+                }
+            }
         }
     }
 
@@ -161,6 +176,20 @@ class ProcessWhatsAppWebhook implements ShouldQueue
             'status' => 'delivered',
             'created_at' => now(), // Explicitly set created_at
         ]);
+
+        // 2.5 Link Inbound Message to Campaign (Replied tracking)
+        // Find the last campaign message sent to this contact in the last 24 hours
+        $lastCampaignContact = \App\Models\CampaignContact::where('contact_id', $contact->id)
+            ->where('created_at', '>=', now()->subHours(24))
+            ->whereIn('status', ['SENT', 'DELIVERED', 'READ'])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($lastCampaignContact && $lastCampaignContact->status !== 'REPLIED') {
+            $lastCampaignContact->update(['status' => 'REPLIED']);
+            $lastCampaignContact->campaign->increment('replied_count');
+            Log::info("Recorded reply for Campaign {$lastCampaignContact->campaign_id} from Contact {$contact->id}");
+        }
 
         // 3. Send Auto-Reply (DYNAMIC)
         if ($config->is_automation_enabled) {

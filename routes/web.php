@@ -54,6 +54,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/whatsapp/templates', [\App\Http\Controllers\WhatsAppTemplateController::class, 'index'])->name('whatsapp.templates.index');
     Route::get('/whatsapp/templates/create', [\App\Http\Controllers\WhatsAppTemplateController::class, 'create'])->name('whatsapp.templates.create');
     Route::post('/whatsapp/templates', [\App\Http\Controllers\WhatsAppTemplateController::class, 'store'])->name('whatsapp.templates.store');
+    Route::post('/whatsapp/templates/sync', [\App\Http\Controllers\WhatsAppTemplateController::class, 'sync'])->name('whatsapp.templates.sync');
+    Route::get('/whatsapp/templates/edit', [\App\Http\Controllers\WhatsAppTemplateController::class, 'edit'])->name('whatsapp.templates.edit');
+    Route::post('/whatsapp/media/upload', [\App\Http\Controllers\WhatsAppTemplateController::class, 'uploadMedia'])->name('whatsapp.media.upload');
     
     // WhatsApp Mockup Routes for App Review Screencast
     Route::post('/whatsapp/send-message', [\App\Http\Controllers\WhatsAppController::class, 'sendMessage'])->name('whatsapp.send-message');
@@ -80,10 +83,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/whatsapp/campaigns', [\App\Http\Controllers\CampaignController::class, 'index'])->name('whatsapp.campaigns.index');
     Route::get('/whatsapp/campaigns/create', [\App\Http\Controllers\CampaignController::class, 'create'])->name('whatsapp.campaigns.create');
     Route::post('/whatsapp/campaigns', [\App\Http\Controllers\CampaignController::class, 'store'])->name('whatsapp.campaigns.store');
+    Route::post('/whatsapp/campaigns/{campaign}/sync', [\App\Http\Controllers\CampaignController::class, 'sync'])->name('whatsapp.campaigns.sync');
+    Route::get('/api/whatsapp/campaigns/{campaign}/report', [\App\Http\Controllers\CampaignController::class, 'report'])->name('api.whatsapp.campaigns.report');
+    Route::get('/api/whatsapp/campaigns/{campaign}/template', [\App\Http\Controllers\CampaignController::class, 'getTemplateDetails'])->name('api.whatsapp.campaigns.template');
 
     // Billing
     Route::get('/billing', [\App\Http\Controllers\BillingController::class, 'index'])->name('billing.index');
-    Route::get('/billing/credits', [\App\Http\Controllers\BillingController::class, 'credits'])->name('billing.credits');
+    Route::get('/billing/pricing', [\App\Http\Controllers\BillingController::class, 'pricing'])->name('billing.pricing');
     Route::post('/billing/buy-credits', [\App\Http\Controllers\BillingController::class, 'buyCredits'])->name('billing.buy-credits');
     Route::post('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
 });

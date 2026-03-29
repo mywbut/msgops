@@ -15,7 +15,7 @@ export default function AuthenticatedLayout({ header, children }) {
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
             <nav className="border-b border-gray-100 bg-white dark:border-gray-700 dark:bg-gray-800">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
+                    <div className="flex h-14 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
                                 <Link href="/">
@@ -73,10 +73,10 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Automation
                                 </NavLink>
                                 <NavLink
-                                    href={route('billing.credits')}
-                                    active={route().current('billing.credits')}
+                                    href={route('billing.index')}
+                                    active={route().current('billing.index')}
                                 >
-                                    Credits
+                                    Billing
                                 </NavLink>
                                 <NavLink
                                     href={route('settings')}
@@ -87,16 +87,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center gap-6">
-                            {/* Wallet Balance Pill */}
-                            <Link 
-                                href={route('billing.credits')}
-                                className="bg-[#25D366]/10 text-[#25D366] px-4 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 hover:bg-[#25D366]/20 transition-all border border-[#25D366]/20"
-                            >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-                                {user.organization?.currency} {parseFloat(user.organization?.wallet_balance || 0).toLocaleString()}
-                            </Link>
-
+                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
