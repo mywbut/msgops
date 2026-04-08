@@ -198,11 +198,23 @@ class ProcessWhatsAppWebhook implements ShouldQueue
             ->get()
             ->filter(fn($r) => $r->is_active === true);
 
+        $org = $config->organization;
+
         foreach ($rules as $rule) {
             if ($this->shouldTriggerRule($rule, $msgBody)) {
+                // Billing: Check if automation can run
+                if ($org && !$org->canExecuteAutomation()) {
+                    Log::warning("Automation execution skipped for Org {$org->id} due to low balance/limit exceeded.");
+                    continue;
+                }
+
                 $this->executeRuleActions($rule, $contact, $config);
                 
-                // Track execution
+                // Track execution & Charge
+                if ($org) {
+                    $org->incrementAutomationTriggers();
+                }
+
                 $rule->increment('executed_count');
                 $rule->update(['last_executed_at' => now()]);
             }

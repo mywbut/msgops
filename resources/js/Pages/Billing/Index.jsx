@@ -13,7 +13,8 @@ export default function BillingIndex({
     freeConversations,
     transactions,
     plan,
-    usage
+    usage,
+    alert
 }) {
     const [rechargeAmount, setRechargeAmount] = useState('');
     const { post, processing } = useForm({
@@ -43,11 +44,11 @@ export default function BillingIndex({
 
                     {/* Low Balance Alert */}
                     {balance < 50 && (
-                        <div className="mb-8 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl flex items-center justify-between">
+                        <div className="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-xl flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <AlertTriangle className="text-amber-500 w-5 h-5" />
                                 <p className="text-amber-800 font-bold text-sm">
-                                    Your balance is low. Recharge to continue automation.
+                                    Your balance is low ({currency} {balance}). Recharge to ensure automation continues.
                                 </p>
                             </div>
                             <button
@@ -56,6 +57,16 @@ export default function BillingIndex({
                             >
                                 Recharge Now
                             </button>
+                        </div>
+                    )}
+
+                    {/* Usage / Limit Alert */}
+                    {alert && (
+                        <div className={`mb-8 p-4 rounded-xl border-l-4 flex items-center gap-4 ${
+                            alert.type === 'warning' ? 'bg-orange-50 border-orange-400 text-orange-800' : 'bg-blue-50 border-blue-400 text-blue-800'
+                        }`}>
+                            <Info className="w-5 h-5 shrink-0" />
+                            <p className="text-sm font-bold leading-tight">{alert.message}</p>
                         </div>
                     )}
 
@@ -159,11 +170,16 @@ export default function BillingIndex({
                                 </div>
                                 <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
                                     <div
-                                        className="bg-[#25D366] h-full transition-all duration-500"
-                                        style={{ width: `${(usage.automation.count / usage.automation.limit) * 100}%` }}
+                                        className={`${usage.automation.count >= usage.automation.limit ? 'bg-orange-500' : 'bg-[#25D366]'} h-full transition-all duration-500`}
+                                        style={{ width: `${Math.min(100, (usage.automation.count / usage.automation.limit) * 100)}%` }}
                                     ></div>
                                 </div>
-                                <p className="mt-2 text-[10px] text-gray-400 font-medium text-right">Remaining usage: {usage.automation.limit - usage.automation.count}</p>
+                                <p className="mt-2 text-[10px] text-gray-400 font-medium text-right">
+                                    {usage.automation.count >= usage.automation.limit 
+                                        ? `Over limit triggers: ${usage.automation.count - usage.automation.limit}` 
+                                        : `Remaining free triggers: ${usage.automation.limit - usage.automation.count}`
+                                    }
+                                </p>
                             </div>
                         </div>
 

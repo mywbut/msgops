@@ -29,23 +29,39 @@ class BillingController extends Controller
             'next_billing' => '12 Apr 2026', // Mocked as per request
         ];
 
-        // Mock usage data for the table/progress bar as per the UI request
+        // Real usage data
+        $automationLimit = $org->automation_limit;
+        $automationCount = $org->monthly_automation_triggers;
+        $excessTriggers = max(0, $automationCount - $automationLimit);
+        $automationCost = $excessTriggers * 0.05;
+
         $usage = [
             'automation' => [
-                'count' => 320,
-                'limit' => 1000,
-                'cost' => 16,
+                'count' => $automationCount,
+                'limit' => $automationLimit,
+                'cost' => $automationCost,
             ],
             'ai' => [
-                'count' => 40,
-                'cost' => 20,
+                'count' => 0,
+                'cost' => 0,
             ],
             'agents' => [
-                'count' => 2,
-                'cost' => 198,
+                'count' => 0,
+                'cost' => 0,
             ],
-            'total_cost' => 234,
+            'total_cost' => $automationCost,
         ];
+
+        // System alerts for UI
+        $alert = null;
+        if ($automationCount >= ($automationLimit * 0.9)) {
+            $alert = [
+                'type' => 'warning',
+                'message' => $automationCount >= $automationLimit 
+                    ? "You have reached your free automation limit. Standard charges (₹0.05/trigger) apply."
+                    : "You have used " . round(($automationCount / $automationLimit) * 100) . "% of your free automation triggers."
+            ];
+        }
 
         return Inertia::render('Billing/Index', [
             'balance' => $balance,
@@ -55,6 +71,7 @@ class BillingController extends Controller
             'plan' => $planDetails,
             'usage' => $usage,
             'organization' => $org,
+            'alert' => $alert,
         ]);
     }
 
