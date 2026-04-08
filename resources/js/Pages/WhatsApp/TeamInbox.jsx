@@ -64,12 +64,14 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
     const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
     const messagesEndRef = useRef(null);
+    const chatContainerRef = useRef(null);
+    const prevMessagesLengthRef = useRef(0);
     const fileInputRef = useRef(null);
     const textAreaRef = useRef(null);
     const emojiPickerRef = useRef(null);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const scrollToBottom = (behavior = "smooth") => {
+        messagesEndRef.current?.scrollIntoView({ behavior });
     };
 
     useEffect(() => {
@@ -87,7 +89,27 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
     }, [selectedContact]);
 
     useEffect(() => {
-        scrollToBottom();
+        const container = chatContainerRef.current;
+        if (!container) return;
+
+        // Check if a brand new message was added (not just a fetch refresh)
+        const hasNewMessage = messages.length > prevMessagesLengthRef.current;
+        
+        // Determine if user is already at the bottom (with 100px threshold)
+        const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
+
+        // Auto-scroll logic: 
+        // 1. If it's the first load of messages
+        // 2. If a new message arrived AND the user is already near the bottom
+        // 3. If the user just sent a message (last message is outbound)
+        const lastMessage = messages[messages.length - 1];
+        const isLastOutbound = lastMessage?.direction === 'outbound';
+
+        if (prevMessagesLengthRef.current === 0 || (hasNewMessage && (isAtBottom || isLastOutbound))) {
+            scrollToBottom(isLastOutbound ? "smooth" : "auto");
+        }
+
+        prevMessagesLengthRef.current = messages.length;
     }, [messages]);
 
     // Handle click outside to close the Emoji Picker
@@ -350,7 +372,11 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
                             </div>
 
                             {/* Chat Messages */}
-                            <div className="flex-1 overflow-y-auto p-8 space-y-6" style={{ backgroundImage: 'radial-gradient(#25D366 0.5px, transparent 0.5px)', backgroundSize: '24px 24px', backgroundOpacity: 0.05 }}>
+                            <div 
+                                ref={chatContainerRef}
+                                className="flex-1 overflow-y-auto p-8 space-y-6" 
+                                style={{ backgroundImage: 'radial-gradient(#25D366 0.5px, transparent 0.5px)', backgroundSize: '24px 24px', backgroundOpacity: 0.05 }}
+                            >
                                 {messages.map((msg, idx) => {
                                     const isOutbound = msg.direction === 'outbound';
                                     const showDate = idx === 0 || messages[idx-1].date !== msg.date;
