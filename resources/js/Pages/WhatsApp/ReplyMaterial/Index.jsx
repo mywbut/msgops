@@ -22,7 +22,7 @@ export default function Index({ materials }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [editId, setEditId] = useState(null);
 
-    const { data, setData, post, put, delete: destroy, reset, processing, errors } = useForm({
+    const { data, setData, post, patch, delete: destroy, reset, processing, errors } = useForm({
         name: '',
         type: 'text',
         content: {
@@ -50,7 +50,7 @@ export default function Index({ materials }) {
         e.preventDefault();
         
         if (editId) {
-            put(route('whatsapp.reply-material.update', editId), {
+            patch(route('whatsapp.reply-material.update', editId), {
                 onSuccess: () => {
                     setShowCreateModal(false);
                     setEditId(null);
