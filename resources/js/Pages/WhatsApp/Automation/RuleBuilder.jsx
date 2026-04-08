@@ -16,7 +16,11 @@ import {
     ImageIcon,
     FileText,
     Film,
-    Smile
+    Smile,
+    Globe,
+    Code,
+    Layout,
+    Type
 } from 'lucide-react';
 
 export default function RuleBuilder({ rule = null, materials = [] }) {
@@ -53,9 +57,18 @@ export default function RuleBuilder({ rule = null, materials = [] }) {
         setData('trigger_config', { ...data.trigger_config, keywords });
     };
 
-    const updateAction = (index, materialId) => {
+    const updateAction = (index, updates) => {
         const action_config = [...data.action_config];
-        action_config[index] = { ...action_config[index], reply_material_id: materialId };
+        action_config[index] = { ...action_config[index], ...updates };
+        setData('action_config', action_config);
+    };
+
+    const addAction = () => {
+        setData('action_config', [...data.action_config, { type: 'send_message', reply_material_id: '' }]);
+    };
+
+    const removeAction = (index) => {
+        const action_config = data.action_config.filter((_, i) => i !== index);
         setData('action_config', action_config);
     };
 
@@ -217,53 +230,150 @@ export default function RuleBuilder({ rule = null, materials = [] }) {
                             </div>
 
                             {data.action_config.map((action, index) => (
-                                <div key={index} className="space-y-6">
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Send Content From Library</label>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {materials.length === 0 ? (
-                                            <div className="col-span-2 p-12 bg-amber-50 border border-amber-100 rounded-[2rem] text-center">
-                                                <p className="text-amber-800 font-bold mb-4 italic">You haven't added any reply materials yet.</p>
-                                                <Link 
-                                                    href={route('whatsapp.reply-material.index')} 
-                                                    className="text-xs font-black uppercase tracking-widest text-[#0B1F2A] underline underline-offset-8"
-                                                >
-                                                    Go to Reply Material Library
-                                                </Link>
-                                            </div>
-                                        ) : (
-                                            materials.map((m) => (
-                                                <button
-                                                    key={m.id}
-                                                    type="button"
-                                                    onClick={() => updateAction(index, m.id)}
-                                                    className={`p-6 rounded-[2rem] border-2 text-left transition-all flex flex-col gap-3 group relative ${
-                                                        action.reply_material_id === m.id 
-                                                        ? 'border-[#25D366] bg-[#25D366]/5' 
-                                                        : 'border-gray-50 hover:border-gray-200'
-                                                    }`}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`p-2.5 rounded-xl ${action.reply_material_id === m.id ? 'bg-[#25D366] text-white shadow-lg' : 'bg-gray-100 text-gray-400'}`}>
-                                                            {getMaterialIcon(m.type)}
-                                                        </div>
-                                                        <div className="font-black text-[#0B1F2A] text-sm uppercase tracking-widest">{m.name}</div>
-                                                    </div>
-                                                    <p className="text-xs text-gray-400 font-medium line-clamp-2 italic">
-                                                        {m.type === 'text' ? m.content.body : `[${m.type.toUpperCase()}] ${m.content.caption || 'No caption'}`}
-                                                    </p>
-                                                    {action.reply_material_id === m.id && (
-                                                        <div className="absolute top-6 right-6">
-                                                            <div className="p-1 bg-[#25D366] text-white rounded-full">
-                                                                <CheckCircle2 className="w-4 h-4" />
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            ))
+                                <div key={index} className="relative group p-10 bg-[#F8FAFC] rounded-[3rem] border border-gray-100 mb-8">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-[#0B1F2A] text-white rounded-xl flex items-center justify-center font-black text-xs">{index + 1}</div>
+                                            <h4 className="text-sm font-black text-[#0B1F2A] uppercase tracking-widest">Action Configuration</h4>
+                                        </div>
+                                        {data.action_config.length > 1 && (
+                                            <button 
+                                                type="button" 
+                                                onClick={() => removeAction(index)}
+                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
                                         )}
                                     </div>
+
+                                    <div className="flex gap-4 mb-10">
+                                        {[
+                                            { id: 'send_message', label: 'Send Message', icon: MessageSquare, desc: 'Reply with image, text or media' },
+                                            { id: 'webhook', label: 'External API', icon: Globe, desc: 'Call a URL or External CRM' }
+                                        ].map((type) => (
+                                            <button
+                                                key={type.id}
+                                                type="button"
+                                                onClick={() => updateAction(index, { type: type.id })}
+                                                className={`flex-1 p-6 rounded-[2rem] border-2 transition-all text-left flex flex-col gap-2 ${
+                                                    action.type === type.id 
+                                                    ? 'border-[#25D366] bg-white shadow-xl shadow-black/5' 
+                                                    : 'border-transparent opacity-60 hover:opacity-100'
+                                                }`}
+                                            >
+                                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${action.type === type.id ? 'bg-[#25D366] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                                                    <type.icon className="w-5 h-5" />
+                                                </div>
+                                                <div className="font-black text-[#0B1F2A] text-xs uppercase tracking-widest">{type.label}</div>
+                                                <div className="text-[10px] text-gray-400 font-medium leading-tight">{type.desc}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {action.type === 'send_message' ? (
+                                        <div className="space-y-6">
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 ml-1">Choose Content From Library</label>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {materials.length === 0 ? (
+                                                    <div className="col-span-2 p-10 bg-white border border-gray-100 rounded-[2rem] text-center">
+                                                        <p className="text-gray-400 font-bold mb-4 italic">No reply materials found.</p>
+                                                        <Link href={route('whatsapp.reply-material.index')} className="text-xs font-black uppercase tracking-widest text-[#25D366] hover:underline">Go to Library</Link>
+                                                    </div>
+                                                ) : (
+                                                    materials.map((m) => (
+                                                        <button
+                                                            key={m.id}
+                                                            type="button"
+                                                            onClick={() => updateAction(index, { reply_material_id: m.id })}
+                                                            className={`p-5 rounded-2xl border-2 text-left transition-all flex items-center gap-4 ${
+                                                                action.reply_material_id === m.id 
+                                                                ? 'border-[#25D366] bg-white' 
+                                                                : 'border-transparent bg-white/50 hover:bg-white'
+                                                            }`}
+                                                        >
+                                                            <div className={`p-2.5 rounded-xl ${action.reply_material_id === m.id ? 'bg-[#25D366] text-white shadow-lg' : 'bg-gray-100 text-gray-400'}`}>
+                                                                {getMaterialIcon(m.type)}
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <div className="font-black text-[#0B1F2A] text-[10px] uppercase tracking-widest">{m.name}</div>
+                                                                <div className="text-[10px] text-gray-400 font-medium truncate italic">{m.type} material</div>
+                                                            </div>
+                                                            {action.reply_material_id === m.id && <CheckCircle2 className="w-4 h-4 text-[#25D366]" />}
+                                                        </button>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-8 bg-white p-8 rounded-[2rem] border border-gray-100">
+                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                                <div className="md:col-span-1">
+                                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">Method</label>
+                                                    <select 
+                                                        value={action.method || 'POST'}
+                                                        onChange={e => updateAction(index, { method: e.target.value })}
+                                                        className="w-full px-5 py-4 bg-[#F8FAFC] border-none rounded-xl text-xs font-bold outline-none ring-0"
+                                                    >
+                                                        <option>POST</option>
+                                                        <option>GET</option>
+                                                    </select>
+                                                </div>
+                                                <div className="md:col-span-3">
+                                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">API Endpoint URL</label>
+                                                    <div className="relative">
+                                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300">
+                                                            <Globe className="w-4 h-4" />
+                                                        </div>
+                                                        <input 
+                                                            type="url"
+                                                            placeholder="https://api.yourclinic.com/v1/booking"
+                                                            value={action.url || ''}
+                                                            onChange={e => updateAction(index, { url: e.target.value })}
+                                                            className="w-full pl-12 pr-6 py-4 bg-[#F8FAFC] border-none rounded-xl text-xs font-bold outline-none ring-0"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Payload / JSON Body</label>
+                                                    <div className="flex gap-2">
+                                                        {['{{phone}}', '{{name}}', '{{body}}'].map(v => (
+                                                            <span key={v} className="px-2 py-1 bg-gray-100 text-gray-500 text-[8px] font-black rounded-lg cursor-help border border-gray-200" title="Click to use (future)">{v}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <textarea 
+                                                    rows="4"
+                                                    placeholder='{ "sender": "{{phone}}", "message": "{{body}}" }'
+                                                    value={typeof action.body === 'object' ? JSON.stringify(action.body, null, 2) : action.body || ''}
+                                                    onChange={e => {
+                                                        try {
+                                                            const json = JSON.parse(e.target.value);
+                                                            updateAction(index, { body: json });
+                                                        } catch(f) {
+                                                            updateAction(index, { body: e.target.value });
+                                                        }
+                                                    }}
+                                                    className="w-full p-6 bg-[#0B1F2A] text-[#25D366] font-mono text-[10px] rounded-2xl border-none outline-none ring-0 scrollbar-hide"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
+
+                            <div className="mt-8">
+                                <button
+                                    type="button"
+                                    onClick={addAction}
+                                    className="w-full py-4 border-2 border-dashed border-gray-100 rounded-[2rem] text-gray-400 flex items-center justify-center gap-2 hover:border-[#25D366] hover:text-[#25D366] transition-all font-black text-[10px] uppercase tracking-widest"
+                                >
+                                    <Plus className="w-4 h-4" /> Add Another Action
+                                </button>
+                            </div>
 
                             {selectedStep === 2 && (
                                 <div className="mt-12 pt-10 border-t border-gray-50 flex justify-between">

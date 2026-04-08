@@ -289,8 +289,86 @@ class ProcessWhatsAppWebhook implements ShouldQueue
                 if ($material) {
                     $this->sendReplyMaterial($contact->phone_number, $material, $config, $contact);
                 }
+            } elseif ($type === 'webhook') {
+                $this->executeWebhookAction($action, $contact, $config, $rule);
             }
         }
+    }
+
+    /**
+     * Execute an external API (Webhook) action.
+     */
+    private function executeWebhookAction(array $action, Contact $contact, WhatsappConfig $config, AutomationRule $rule): void
+    {
+        $url = $this->resolveVariables($action['url'] ?? '', $contact);
+        $method = strtoupper($action['method'] ?? 'POST');
+        $headers = (array)($action['headers'] ?? []);
+        $body = (array)($action['body'] ?? []);
+
+        // Resolve variables in body
+        array_walk_recursive($body, function (&$value) use ($contact) {
+            if (is_string($value)) {
+                $value = $this->resolveVariables($value, $contact);
+            }
+        });
+
+        Log::info("Executing Webhook for Rule '{$rule->name}': {$method} {$url}");
+
+        try {
+            $request = Http::withHeaders($headers)->timeout(5);
+            
+            $response = $method === 'POST' 
+                ? $request->post($url, $body) 
+                : $request->get($url, $body);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                // Check for dynamic reply in the response
+                if (isset($data['reply']) && is_string($data['reply'])) {
+                    $this->sendWhatsAppMessage($contact->phone_number, $data['reply'], $config);
+                    
+                    // Log the dynamic reply
+                    Message::create([
+                        'org_id' => $config->org_id,
+                        'contact_id' => $contact->id,
+                        'wam_id' => null, // Dynamic responses don't have a WAM ID immediately
+                        'direction' => 'outbound',
+                        'type' => 'text',
+                        'content' => ['body' => $data['reply']],
+                        'status' => 'sent',
+                        'sender_type' => 'bot',
+                        'created_at' => now(),
+                    ]);
+                }
+            } else {
+                Log::error("Webhook failed for Rule '{$rule->name}': " . $response->body());
+            }
+        } catch (\Exception $e) {
+            Log::error("Exception in Webhook execution: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Resolve variables like {{phone}}, {{name}}, {{body}} in a string.
+     */
+    private function resolveVariables(string $string, Contact $contact): string
+    {
+        // Try to find the original message body from the current context if available
+        // Since we don't pass it around everywhere, we can try to get it from the last inbound message
+        $lastMessage = Message::where('contact_id', $contact->id)
+            ->where('direction', 'inbound')
+            ->latest()
+            ->first();
+        
+        $msgBody = $lastMessage ? ($lastMessage->content['body'] ?? '') : '';
+
+        $vars = [
+            '{{phone}}' => $contact->phone_number,
+            '{{name}}' => $contact->name ?? 'User',
+            '{{body}}' => $msgBody,
+        ];
+
+        return str_replace(array_keys($vars), array_values($vars), $string);
     }
 
     /**
