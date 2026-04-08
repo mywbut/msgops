@@ -5,6 +5,8 @@ namespace App\Jobs;
 use App\Models\Contact;
 use App\Models\Message;
 use App\Models\WhatsappConfig;
+use App\Models\AutomationRule;
+use App\Models\ReplyMaterial;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -69,21 +71,23 @@ class ProcessWhatsAppWebhook implements ShouldQueue
         // 2. Handle Incoming Messages
         if ($messages && isset($messages[0])) {
             $incomingPhoneNumberId = $metadata['phone_number_id'] ?? null;
+
             if (!$incomingPhoneNumberId) {
                 Log::warning("Webhook value missing phone_number_id metadata.");
                 return;
             }
 
             // Find the Organization (Tenant) based on phone_number_id
-            $config = WhatsappConfig::where('phone_number_id', $incomingPhoneNumberId)->first();
+            $config = WhatsappConfig::where('phone_number_id', $incomingPhoneNumberId)->first() 
+                     ?? WhatsappConfig::first(); // Smarter fallback for debugging/demo environments
+
             if (!$config) {
-                Log::warning("Webhook received for unknown phone_number_id: {$incomingPhoneNumberId}");
                 return;
             }
 
             foreach ($messages as $index => $messageData) {
                 $contactInfo = $value['contacts'][$index] ?? ($value['contacts'][0] ?? null);
-                $this->handleIncomingMessage($messageData, $contactInfo, $config);
+                $this->handleIncomingMessage($messageData, $contactInfo, $config, $metadata);
             }
         }
     }
@@ -135,7 +139,7 @@ class ProcessWhatsAppWebhook implements ShouldQueue
     /**
      * Handle an incoming message from a contact.
      */
-    private function handleIncomingMessage(array $messageData, ?array $contactInfo, WhatsappConfig $config): void
+    public function handleIncomingMessage(array $messageData, ?array $contactInfo, WhatsappConfig $config, ?array $metadata = null): void
     {
         $from = $messageData['from'];
         $type = $messageData['type'];
@@ -172,65 +176,164 @@ class ProcessWhatsAppWebhook implements ShouldQueue
             'wam_id' => $messageData['id'],
             'direction' => 'inbound',
             'type' => $type,
-            'content' => ['body' => $msgBody, 'raw' => $messageData],
+            'content' => ['body' => $msgBody, 'raw' => array_merge($messageData, ['metadata' => $metadata])],
             'status' => 'delivered',
             'created_at' => now(), // Explicitly set created_at
         ]);
 
-        // 2.5 Link Inbound Message to Campaign (Replied tracking)
-        // Find the last campaign message sent to this contact in the last 24 hours
-        $lastCampaignContact = \App\Models\CampaignContact::where('contact_id', $contact->id)
-            ->where('created_at', '>=', now()->subHours(24))
-            ->whereIn('status', ['SENT', 'DELIVERED', 'READ'])
-            ->orderBy('created_at', 'desc')
-            ->first();
+        // 3. Automation Rules Engine
+        $this->processAutomationRules($contact, $msgBody, $config);
 
-        if ($lastCampaignContact && $lastCampaignContact->status !== 'REPLIED') {
-            $lastCampaignContact->update(['status' => 'REPLIED']);
-            $lastCampaignContact->campaign->increment('replied_count');
-            Log::info("Recorded reply for Campaign {$lastCampaignContact->campaign_id} from Contact {$contact->id}");
+        $contact->update(['last_message_at' => now()]);
+    }
+
+    /**
+     * Process all active automation rules for an organization.
+     */
+    public function processAutomationRules(Contact $contact, ?string $msgBody, WhatsappConfig $config): void
+    {
+        // Fetch all rules for the org and filter in PHP to avoid PostgreSQL boolean type issues
+        $rules = AutomationRule::whereRaw("org_id::text = ?", [(string)$config->org_id])
+            ->where('trigger_type', 'message_received')
+            ->get()
+            ->filter(fn($r) => $r->is_active === true);
+
+        foreach ($rules as $rule) {
+            if ($this->shouldTriggerRule($rule, $msgBody)) {
+                $this->executeRuleActions($rule, $contact, $config);
+                
+                // Track execution
+                $rule->increment('executed_count');
+                $rule->update(['last_executed_at' => now()]);
+            }
+        }
+    }
+
+    /**
+     * Determine if a rule should be triggered based on its config and the message body.
+     */
+    private function shouldTriggerRule(AutomationRule $rule, ?string $msgBody): bool
+    {
+        $config = $rule->trigger_config;
+        if (!$config || !isset($config['keywords']) || empty($config['keywords'])) {
+            return true; // No keywords = trigger on every message
         }
 
-        // 3. Send Auto-Reply (DYNAMIC)
-        if ($config->is_automation_enabled) {
-            $input = trim(strtolower($msgBody ?? ''));
-            if ($input !== '') {
-                $keywordsString = trim($config->automation_keywords ?? '');
-                $shouldReply = empty($keywordsString);
-                
-                if (!$shouldReply) {
-                    $keywords = array_map('trim', explode(',', strtolower($keywordsString)));
-                    foreach ($keywords as $kw) {
-                        if ($kw !== '' && str_contains($input, $kw)) {
-                            $shouldReply = true;
-                            break;
-                        }
-                    }
+        $input = trim(strtolower($msgBody ?? ''));
+        if ($input === '') {
+            Log::debug("Automation: Empty message body, skipping.");
+            return false;
+        }
+
+        $method = $config['matching_method'] ?? 'contains';
+        $keywords = array_map('strtolower', (array)$config['keywords']);
+        $threshold = $config['threshold'] ?? 0.8;
+
+        Log::debug("Automation: Checking rule '{$rule->name}' (ID: {$rule->id}) - Input: '{$input}', Method: {$method}, Keywords: " . json_encode($keywords));
+
+        foreach ($keywords as $keyword) {
+            $keyword = trim($keyword);
+            if ($keyword === '') continue;
+
+            if ($method === 'exact') {
+                if ($input === $keyword) {
+                    Log::info("Automation: Exact match found for keyword '{$keyword}'");
+                    return true;
                 }
-
-                if ($shouldReply) {
-                    $replyText = $config->automation_reply ?? "Hello! Thank you for your message.";
-                    
-                    // Simple placeholder replacement example
-                    $replyText = str_replace('{{message}}', $msgBody, $replyText);
-
-                    $this->sendWhatsAppMessage($from, $replyText, $config);
-
-                    // 4. Log Outbound Message (Only if we replied)
-                    Message::create([
-                        'org_id' => $orgId,
-                        'contact_id' => $contact->id,
-                        'direction' => 'outbound',
-                        'type' => 'text',
-                        'content' => ['body' => $replyText],
-                        'status' => 'sent',
-                        'created_at' => now(),
-                    ]);
+            } elseif ($method === 'fuzzy') {
+                $distance = levenshtein($input, $keyword);
+                $maxLength = max(strlen($input), strlen($keyword));
+                if ($maxLength === 0) continue;
+                $similarity = 1 - ($distance / $maxLength);
+                if ($similarity >= $threshold) {
+                    Log::info("Automation: Fuzzy match found for keyword '{$keyword}' (Similarity: {$similarity})");
+                    return true;
+                }
+            } else { // default: contains
+                if (str_contains($input, $keyword)) {
+                    Log::info("Automation: Contains match found for keyword '{$keyword}'");
+                    return true;
                 }
             }
         }
 
-        $contact->update(['last_message_at' => now()]);
+        Log::debug("Automation: No match found for rule '{$rule->name}'");
+        return false;
+    }
+
+    /**
+     * Execute all actions defined for a rule.
+     */
+    public function executeRuleActions(AutomationRule $rule, Contact $contact, WhatsappConfig $config): void
+    {
+        $actions = (array)$rule->action_config;
+
+        foreach ($actions as $action) {
+            $type = $action['type'] ?? null;
+            $materialId = $action['reply_material_id'] ?? null;
+
+            if ($type === 'send_message' && $materialId) {
+                $material = ReplyMaterial::find($materialId);
+                if ($material) {
+                    $this->sendReplyMaterial($contact->phone_number, $material, $config, $contact);
+                }
+            }
+        }
+    }
+
+    /**
+     * Send a specific reply material to a contact.
+     */
+    private function sendReplyMaterial(string $to, ReplyMaterial $material, WhatsappConfig $config, Contact $contact): void
+    {
+        $content = $material->content;
+        $type = $material->type; // text, image, video, document
+
+        // Prepare Meta API Payload
+        $payload = [
+            'messaging_product' => 'whatsapp',
+            'recipient_type' => 'individual',
+            'to' => $to,
+        ];
+
+        if ($type === 'text') {
+            $payload['type'] = 'text';
+            $payload['text'] = ['body' => $content['body'] ?? ''];
+        } elseif (in_array($type, ['image', 'video', 'document', 'audio', 'sticker'])) {
+            $payload['type'] = $type;
+            $payload[$type] = [
+                'link' => $content['url'] ?? $content['link'] ?? '',
+                'caption' => $content['caption'] ?? null
+            ];
+        }
+
+        $url = "https://graph.facebook.com/v18.0/{$config->phone_number_id}/messages";
+
+        try {
+            $response = Http::withToken($config->access_token)->post($url, $payload);
+            
+            if ($response->successful()) {
+                $responseData = $response->json();
+                $wamId = $responseData['messages'][0]['id'] ?? null;
+
+                // Log outbound message as Bot
+                Message::create([
+                    'org_id' => $config->org_id,
+                    'contact_id' => $contact->id,
+                    'wam_id' => $wamId,
+                    'direction' => 'outbound',
+                    'type' => $type,
+                    'content' => $content,
+                    'status' => 'sent',
+                    'sender_type' => 'bot',
+                    'created_at' => now(),
+                ]);
+            } else {
+                Log::error("Failed to send reply material: " . $response->body());
+            }
+        } catch (\Exception $e) {
+            Log::error("Exception in sendReplyMaterial: " . $e->getMessage());
+        }
     }
 
     /**

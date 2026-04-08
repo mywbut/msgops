@@ -37,6 +37,7 @@ class WebhookController extends Controller
     public function handle(Request $request)
     {
         $payload = $request->all();
+        Log::emergency("WEBHOOK RECEIVED FROM META! Object: " . ($payload['object'] ?? 'NULL'));
 
         Log::info('Webhook Incoming Payload:', [
             'payload' => $payload,
@@ -45,9 +46,9 @@ class WebhookController extends Controller
             'headers' => $request->headers->all(),
         ]);
 
-        // 1. Dispatch a background Job to process the message payload.
+        // 1. Process the message payload instantly (Synchronously) to ensure reliability.
         if (isset($payload['object']) && $payload['object'] === 'whatsapp_business_account') {
-            ProcessWhatsAppWebhook::dispatch($payload);
+            ProcessWhatsAppWebhook::dispatchSync($payload);
         } else {
             Log::warning('Webhook received with unexpected object type:', [
                 'object' => $payload['object'] ?? 'not set'
