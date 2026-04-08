@@ -67,8 +67,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Logs
                                 </NavLink>
                                 <NavLink
-                                    href={route('whatsapp.automation')}
-                                    active={route().current('whatsapp.automation')}
+                                    href={route('whatsapp.automation.index')}
+                                    active={route().current('whatsapp.automation.*')}
                                 >
                                     Automation
                                 </NavLink>
@@ -225,8 +225,8 @@ export default function AuthenticatedLayout({ header, children }) {
                             Logs
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
-                            href={route('whatsapp.automation')}
-                            active={route().current('whatsapp.automation')}
+                            href={route('whatsapp.automation.index')}
+                            active={route().current('whatsapp.automation.*')}
                         >
                             Automation
                         </ResponsiveNavLink>

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WhatsAppAuthController;
+use App\Http\Controllers\AutomationRuleController;
+use App\Http\Controllers\ReplyMaterialController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -75,9 +77,20 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{contact}', [\App\Http\Controllers\ContactController::class, 'destroy'])->name('destroy');
     });
 
-    // WhatsApp Automation
-    Route::get('/whatsapp/automation', [\App\Http\Controllers\AutomationController::class, 'index'])->name('whatsapp.automation');
-    Route::post('/whatsapp/automation', [\App\Http\Controllers\AutomationController::class, 'save'])->name('whatsapp.automation.save');
+    // WhatsApp Automation (New Rules System)
+    Route::get('/whatsapp/automation', [\App\Http\Controllers\AutomationRuleController::class, 'index'])->name('whatsapp.automation.index');
+    Route::get('/whatsapp/automation/create', [\App\Http\Controllers\AutomationRuleController::class, 'create'])->name('whatsapp.automation.create');
+    Route::get('/whatsapp/automation/{rule}/edit', [\App\Http\Controllers\AutomationRuleController::class, 'edit'])->name('whatsapp.automation.edit');
+    Route::post('/whatsapp/automation', [\App\Http\Controllers\AutomationRuleController::class, 'store'])->name('whatsapp.automation.store');
+    Route::patch('/whatsapp/automation/{rule}', [\App\Http\Controllers\AutomationRuleController::class, 'update'])->name('whatsapp.automation.update');
+    Route::post('/whatsapp/automation/{rule}/toggle', [\App\Http\Controllers\AutomationRuleController::class, 'toggle'])->name('whatsapp.automation.toggle');
+    Route::delete('/whatsapp/automation/{rule}', [\App\Http\Controllers\AutomationRuleController::class, 'destroy'])->name('whatsapp.automation.destroy');
+
+    // Reply Material Library
+    Route::get('/whatsapp/reply-material', [\App\Http\Controllers\ReplyMaterialController::class, 'index'])->name('whatsapp.reply-material.index');
+    Route::post('/whatsapp/reply-material', [\App\Http\Controllers\ReplyMaterialController::class, 'store'])->name('whatsapp.reply-material.store');
+    Route::patch('/whatsapp/reply-material/{material}', [\App\Http\Controllers\ReplyMaterialController::class, 'update'])->name('whatsapp.reply-material.update');
+    Route::delete('/whatsapp/reply-material/{material}', [\App\Http\Controllers\ReplyMaterialController::class, 'destroy'])->name('whatsapp.reply-material.destroy');
 
     // WhatsApp Campaigns
     Route::get('/whatsapp/campaigns', [\App\Http\Controllers\CampaignController::class, 'index'])->name('whatsapp.campaigns.index');
