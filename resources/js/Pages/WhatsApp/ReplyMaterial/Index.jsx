@@ -20,8 +20,9 @@ export default function Index({ materials }) {
     const [activeTab, setActiveTab] = useState('text');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [editId, setEditId] = useState(null);
 
-    const { data, setData, post, delete: destroy, reset, processing, errors } = useForm({
+    const { data, setData, post, put, delete: destroy, reset, processing, errors } = useForm({
         name: '',
         type: 'text',
         content: {
@@ -47,16 +48,41 @@ export default function Index({ materials }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('whatsapp.reply-material.store'), {
-            onSuccess: () => {
-                setShowCreateModal(false);
-                reset({
-                    name: '',
-                    type: activeTab,
-                    content: { body: '', url: '', caption: '' }
-                });
+        
+        if (editId) {
+            put(route('whatsapp.reply-material.update', editId), {
+                onSuccess: () => {
+                    setShowCreateModal(false);
+                    setEditId(null);
+                    reset();
+                }
+            });
+        } else {
+            post(route('whatsapp.reply-material.store'), {
+                onSuccess: () => {
+                    setShowCreateModal(false);
+                    reset({
+                        name: '',
+                        type: activeTab,
+                        content: { body: '', url: '', caption: '' }
+                    });
+                }
+            });
+        }
+    };
+
+    const handleEdit = (material) => {
+        setEditId(material.id);
+        setData({
+            name: material.name,
+            type: material.type,
+            content: {
+                body: material.content.body || '',
+                url: material.content.url || '',
+                caption: material.content.caption || ''
             }
         });
+        setShowCreateModal(true);
     };
 
     const handleDelete = (id) => {
@@ -83,7 +109,12 @@ export default function Index({ materials }) {
                         </Link>
                         <button
                             onClick={() => {
-                                setData('type', activeTab);
+                                setEditId(null);
+                                reset({
+                                    name: '',
+                                    type: activeTab,
+                                    content: { body: '', url: '', caption: '' }
+                                });
                                 setShowCreateModal(true);
                             }}
                             className="bg-[#25D366] hover:bg-[#128C7E] text-white px-8 py-2.5 rounded-2xl shadow-xl shadow-[#25D366]/20 text-[10px] uppercase font-black tracking-[0.15em] transition-all transform hover:-translate-y-0.5 flex items-center gap-3 active:scale-95"
@@ -147,7 +178,12 @@ export default function Index({ materials }) {
                             <p className="text-gray-400 font-medium max-w-xs mx-auto mb-10">Create your first {activeTab} material to reuse in your automation rules.</p>
                             <button
                                 onClick={() => {
-                                    setData('type', activeTab);
+                                    setEditId(null);
+                                    reset({
+                                        name: '',
+                                        type: activeTab,
+                                        content: { body: '', url: '', caption: '' }
+                                    });
                                     setShowCreateModal(true);
                                 }}
                                 className="px-12 py-3.5 bg-[#0B1F2A] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-2xl shadow-black/10 transition-all hover:-translate-y-1 active:scale-95"
@@ -168,7 +204,10 @@ export default function Index({ materials }) {
                                                 </p>
                                             </div>
                                             <div className="flex gap-2">
-                                                <button className="p-2.5 bg-gray-50 text-gray-400 hover:text-[#4F46E5] hover:bg-indigo-50 rounded-xl transition-all">
+                                                <button 
+                                                    onClick={() => handleEdit(material)}
+                                                    className="p-2.5 bg-gray-50 text-gray-400 hover:text-[#4F46E5] hover:bg-indigo-50 rounded-xl transition-all"
+                                                >
                                                     <Edit3 className="w-4 h-4" />
                                                 </button>
                                                 <button 
@@ -222,8 +261,8 @@ export default function Index({ materials }) {
                     <div className="bg-white rounded-[3rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-scale-up">
                         <div className="px-10 py-10 flex items-center justify-between border-b border-gray-50">
                             <div>
-                                <h3 className="text-2xl font-black text-[#0B1F2A] tracking-tight">New {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Material</h3>
-                                <p className="text-sm text-gray-400 font-medium mt-1">Define your reusable response</p>
+                                <h3 className="text-2xl font-black text-[#0B1F2A] tracking-tight">{editId ? 'Edit' : 'New'} {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Material</h3>
+                                <p className="text-sm text-gray-400 font-medium mt-1">{editId ? 'Update your reusable response' : 'Define your reusable response'}</p>
                             </div>
                             <button 
                                 onClick={() => setShowCreateModal(false)}
@@ -299,7 +338,7 @@ export default function Index({ materials }) {
                                     disabled={processing}
                                     className="flex-[2] py-4 bg-[#25D366] text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-[#25D366]/20 transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:translate-y-0"
                                 >
-                                    {processing ? 'Saving...' : 'Save Material'}
+                                    {processing ? 'Saving...' : (editId ? 'Update Material' : 'Save Material')}
                                 </button>
                             </div>
                         </form>
