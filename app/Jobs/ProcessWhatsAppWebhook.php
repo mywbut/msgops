@@ -434,15 +434,21 @@ class ProcessWhatsAppWebhook implements ShouldQueue
         $url = "https://graph.facebook.com/v18.0/{$config->phone_number_id}/messages";
 
         try {
-            Http::withToken($config->access_token)->post($url, [
+            $response = Http::withToken($config->access_token)->post($url, [
                 'messaging_product' => 'whatsapp',
                 'recipient_type' => 'individual',
                 'to' => $to,
                 'type' => 'text',
                 'text' => ['body' => $text],
             ]);
+
+            if (!$response->successful()) {
+                Log::error("Failed to send WhatsApp reply. Meta Error: " . $response->body());
+            } else {
+                Log::info("Successfully sent WhatsApp reply to $to");
+            }
         } catch (\Exception $e) {
-            Log::error("Failed to send WhatsApp reply: " . $e->getMessage());
+            Log::error("Exception while sending WhatsApp reply: " . $e->getMessage());
         }
     }
 }
