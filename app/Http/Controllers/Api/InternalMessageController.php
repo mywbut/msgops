@@ -72,7 +72,7 @@ class InternalMessageController extends Controller
 
         } catch (\Exception $e) {
             Log::error("Gateway Exception: " . $e->getMessage());
-            return response()->json(['error' => 'Internal server error'], 500);
+            return response()->json(['error' => 'Gateway Exception: ' . $e->getMessage()], 500);
         }
     }
 }
