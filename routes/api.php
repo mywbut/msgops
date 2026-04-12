@@ -13,3 +13,6 @@ Route::get('/webhook', [WebhookController::class, 'verify']);
 
 // WhatsApp Incoming Messages (POST)
 Route::post('/webhook', [WebhookController::class, 'handle']);
+
+// Internal Trusted Gateway
+Route::post('/v1/messages/send', [App\Http\Controllers\Api\InternalMessageController::class, 'sendTemplate']);
