@@ -15,4 +15,4 @@ Route::get('/webhook', [WebhookController::class, 'verify']);
 Route::post('/webhook', [WebhookController::class, 'handle']);
 
 // Internal Trusted Gateway
-Route::post('/v1/messages/send', [App\Http\Controllers\Api\InternalMessageController::class, 'sendTemplate']);
+Route::post('/v1/messages/send', [\App\Http\Controllers\Api\InternalMessageController::class, 'sendTemplate']);
