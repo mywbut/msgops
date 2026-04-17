@@ -69,6 +69,9 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
     const fileInputRef = useRef(null);
     const textAreaRef = useRef(null);
     const emojiPickerRef = useRef(null);
+    const lastMessageIdRef = useRef(null);
+    const incomingSoundRef = useRef(new Audio('https://cdn.jsdelivr.net/npm/whatsapp-notification-sound@1.0.0/notification.mp3'));
+    const outgoingSoundRef = useRef(new Audio('https://raw.githubusercontent.com/Ansh-Rathod/WhatsApp-Clone-React/master/public/whatsapp_outbound.mp3'));
 
     const scrollToBottom = (behavior = "smooth") => {
         messagesEndRef.current?.scrollIntoView({ behavior });
@@ -90,23 +93,40 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
 
     useEffect(() => {
         const container = chatContainerRef.current;
-        if (!container) return;
+        if (!container || messages.length === 0) return;
 
-        // Check if a brand new message was added (not just a fetch refresh)
-        const hasNewMessage = messages.length > prevMessagesLengthRef.current;
-        
-        // Determine if user is already at the bottom (with 100px threshold)
-        const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
-
-        // Auto-scroll logic: 
-        // 1. If it's the first load of messages
-        // 2. If a new message arrived AND the user is already near the bottom
-        // 3. If the user just sent a message (last message is outbound)
         const lastMessage = messages[messages.length - 1];
-        const isLastOutbound = lastMessage?.direction === 'outbound';
+        const lastMessageId = lastMessage?.id || lastMessage?.created_at; // Fallback to timestamp if ID missing
+        
+        // Detect if there's a brand new message (not just a fetch refresh)
+        const isNewMessage = lastMessageId !== lastMessageIdRef.current;
+        
+        if (isNewMessage) {
+            const isOutbound = lastMessage?.direction === 'outbound';
+            
+            // 1. Play Sound (if it's not the initial load)
+            if (lastMessageIdRef.current !== null) {
+                if (isOutbound) {
+                    outgoingSoundRef.current.play().catch(e => console.log('Audio play failed:', e));
+                } else {
+                    incomingSoundRef.current.play().catch(e => console.log('Audio play failed:', e));
+                }
+            }
 
-        if (prevMessagesLengthRef.current === 0 || (hasNewMessage && (isAtBottom || isLastOutbound))) {
-            scrollToBottom(isLastOutbound ? "smooth" : "auto");
+            // 2. Auto-scroll logic 
+            // Determine if user is already at the bottom (with 150px threshold)
+            const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
+
+            // Scenario A: First load -> Scroll auto
+            // Scenario B: User sent message -> Scroll smooth
+            // Scenario C: Received message while at bottom -> Scroll smooth
+            if (lastMessageIdRef.current === null) {
+                scrollToBottom("auto");
+            } else if (isOutbound || isAtBottom) {
+                scrollToBottom("smooth");
+            }
+
+            lastMessageIdRef.current = lastMessageId;
         }
 
         prevMessagesLengthRef.current = messages.length;
