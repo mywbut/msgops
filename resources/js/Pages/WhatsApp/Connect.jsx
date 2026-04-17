@@ -12,6 +12,60 @@ export default function Connect() {
     
     const [status, setStatus] = useState('');
     const [isError, setIsError] = useState(false);
+    const [availableNumbers, setAvailableNumbers] = useState([]);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const fetchNumbers = async () => {
+        setIsSyncing(true);
+        setStatus('Fetching your phone numbers from Meta...');
+        setIsError(false);
+        try {
+            const response = await fetch(route('whatsapp.sync-numbers'));
+            const data = await response.json();
+            if (data.data) {
+                setAvailableNumbers(data.data);
+                setStatus('Phone numbers synced successfully!');
+            } else if (data.error) {
+                setStatus(data.error);
+                setIsError(true);
+            }
+        } catch (err) {
+            setStatus('Failed to fetch numbers. Please try again.');
+            setIsError(true);
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const activateNumber = async (num) => {
+        setStatus(`Activating ${num.display_phone_number}...`);
+        setIsError(false);
+        try {
+            const response = await fetch(route('whatsapp.select-number'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                },
+                body: JSON.stringify({
+                    phone_number_id: num.id,
+                    display_phone_number: num.display_phone_number,
+                    status: num.name_status,
+                }),
+            });
+            const data = await response.json();
+            if (data.success) {
+                // Hard refresh to update everything
+                window.location.reload();
+            } else {
+                setStatus(data.error || 'Failed to activate number.');
+                setIsError(true);
+            }
+        } catch (err) {
+            setStatus('Error occurred during activation.');
+            setIsError(true);
+        }
+    };
 
     useEffect(() => {
         if (flashError) {
@@ -129,7 +183,7 @@ export default function Connect() {
                                     </div>
                                 </div>
 
-                                {/* Phone Status Card */}
+                                { /* Phone Status Card */ }
                                 <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
                                     <div>
                                         <div className="flex justify-between items-start mb-6">
@@ -142,12 +196,71 @@ export default function Connect() {
                                         <div className="text-2xl font-bold text-[#0B1F2A] mb-2">{phoneNumber}</div>
                                         <p className="text-xs text-gray-400 truncate">ID: {phoneNumberId}</p>
                                     </div>
-                                    <div className="mt-6 pt-6 border-t border-gray-50 flex justify-between items-center text-xs">
-                                        <span className="text-gray-500 font-medium">Auto-reply status</span>
-                                        <span className="font-bold text-[#25D366]">ENABLED</span>
+                                    <div className="mt-6 pt-6 border-t border-gray-50 flex justify-between items-center">
+                                        <button 
+                                            onClick={fetchNumbers}
+                                            disabled={isSyncing}
+                                            className="text-[10px] font-bold text-[#4F46E5] hover:bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 transition-all uppercase tracking-wider"
+                                        >
+                                            {isSyncing ? 'Syncing...' : 'Sync Phone Numbers'}
+                                        </button>
+                                        <div className="flex flex-col items-end">
+                                            <span className="text-[10px] text-gray-400 uppercase tracking-widest leading-none mb-1">Auto-reply</span>
+                                            <span className="text-[10px] font-bold text-[#25D366] uppercase">ENABLED</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Available Numbers Selection Section */}
+                            {availableNumbers.length > 0 && (
+                                <div className="bg-indigo-900 rounded-3xl p-8 text-white shadow-xl shadow-indigo-200/50">
+                                    <div className="flex justify-between items-center mb-8">
+                                        <div>
+                                            <h3 className="text-xl font-bold font-heading mb-1">Available Phone Numbers</h3>
+                                            <p className="text-indigo-300 text-sm">Select the number you want to use for this workspace.</p>
+                                        </div>
+                                        <button 
+                                            onClick={() => setAvailableNumbers([])}
+                                            className="text-indigo-300 hover:text-white"
+                                        >
+                                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {availableNumbers.map((num) => (
+                                            <div 
+                                                key={num.id} 
+                                                className={`p-6 rounded-2xl border transition-all ${num.id === phoneNumberId ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                                            >
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="font-bold text-lg">{num.display_phone_number}</div>
+                                                    {num.id === phoneNumberId && (
+                                                        <span className="bg-green-500 text-white text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter">Active</span>
+                                                    )}
+                                                </div>
+                                                <div className="space-y-1 mb-6">
+                                                    <div className="text-[10px] text-indigo-300 uppercase font-bold tracking-widest">Phone ID</div>
+                                                    <div className="text-xs font-mono opacity-80">{num.id}</div>
+                                                </div>
+                                                <div className="space-y-1 mb-6">
+                                                    <div className="text-[10px] text-indigo-300 uppercase font-bold tracking-widest">Name Status</div>
+                                                    <div className="text-xs opacity-80">{num.name_status}</div>
+                                                </div>
+                                                
+                                                {num.id !== phoneNumberId && (
+                                                    <button
+                                                        onClick={() => activateNumber(num)}
+                                                        className="w-full bg-white text-indigo-900 font-bold py-2.5 rounded-xl hover:bg-indigo-50 transition-all text-xs uppercase tracking-widest"
+                                                    >
+                                                        Activate Number
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Detailed Info Section */}
                             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">

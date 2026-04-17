@@ -303,6 +303,86 @@ class WhatsAppAuthController extends Controller
     }
 
     /**
+     * Fetch all available phone numbers from Meta for the connected WABA.
+     */
+    public function getAvailableNumbers(Request $request)
+    {
+        $user = $request->user();
+        $config = WhatsappConfig::where('org_id', $user->org_id)->first();
+
+        if (!$config || !$config->access_token || !$config->waba_id) {
+            return response()->json(['error' => 'No WhatsApp connection found.'], 400);
+        }
+
+        try {
+            $response = Http::withToken($config->access_token)
+                ->get("https://graph.facebook.com/v18.0/{$config->waba_id}/phone_numbers");
+
+            if ($response->failed()) {
+                Log::error('Meta Fetch Phones Failed: ' . $response->body());
+                return response()->json(['error' => 'Failed to fetch phone numbers from Meta.'], 500);
+            }
+
+            return response()->json($response->json());
+        } catch (\Exception $e) {
+            Log::error('Fetch Available Numbers Error: ' . $e->getMessage());
+            return response()->json(['error' => 'Server error occurred while fetching numbers.'], 500);
+        }
+    }
+
+    /**
+     * Select and activate a specific phone number.
+     */
+    public function selectNumber(Request $request)
+    {
+        $request->validate([
+            'phone_number_id' => 'required|string',
+            'display_phone_number' => 'required|string',
+            'status' => 'nullable|string',
+        ]);
+
+        $user = $request->user();
+        $config = WhatsappConfig::where('org_id', $user->org_id)->first();
+
+        if (!$config) {
+            return response()->json(['error' => 'No WhatsApp connection found.'], 400);
+        }
+
+        try {
+            $phoneNumberId = $request->input('phone_number_id');
+            $phoneNumberDisplay = $request->input('display_phone_number');
+            $phoneStatus = $request->input('status');
+
+            if (strtolower($phoneStatus) === 'approved') {
+                $phoneStatus = 'Active';
+            }
+
+            // Register the phone number for the Cloud API.
+            $registerResponse = Http::withToken($config->access_token)
+                ->post("https://graph.facebook.com/v18.0/{$phoneNumberId}/register", [
+                    'messaging_product' => 'whatsapp',
+                    'pin' => '123456'
+                ]);
+
+            if ($registerResponse->failed()) {
+                Log::error('Meta Register Phone Failed (Selection): ' . json_encode($registerResponse->json()));
+                // We keep going as some test numbers might already be registered
+            }
+
+            $config->update([
+                'phone_number_id' => $phoneNumberId,
+                'phone_number' => $phoneNumberDisplay,
+                'phone_status' => $phoneStatus,
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Phone number activated successfully!']);
+        } catch (\Exception $e) {
+            Log::error('Select Phone Number Error: ' . $e->getMessage());
+            return response()->json(['error' => 'Server error occurred while activating the number.'], 500);
+        }
+    }
+
+    /**
      * Subscribe the Meta App to the WABA to receive webhooks.
      */
     private function subscribeAppToWaba($wabaId, $accessToken): bool

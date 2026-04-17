@@ -50,6 +50,8 @@ Route::middleware('auth')->group(function () {
 
     // WhatsApp Connect Route
     Route::get('/whatsapp/connect', [WhatsAppAuthController::class, 'showConnectPage'])->name('whatsapp.connect');
+    Route::get('/whatsapp/sync-numbers', [WhatsAppAuthController::class, 'getAvailableNumbers'])->name('whatsapp.sync-numbers');
+    Route::post('/whatsapp/select-number', [WhatsAppAuthController::class, 'selectNumber'])->name('whatsapp.select-number');
     Route::delete('/whatsapp/disconnect', [WhatsAppAuthController::class, 'disconnect'])->name('whatsapp.disconnect');
 
     // WhatsApp Template Management
