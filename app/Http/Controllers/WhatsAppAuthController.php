@@ -23,12 +23,19 @@ class WhatsAppAuthController extends Controller
         // Get the current user's organization.
         $user = $request->user();
         if (!$user->org_id) {
-            // First time login? Auto-create their org!
-            $org = Organization::create([
-                'name' => $user->name . "'s Business",
-                'plan_tier' => 'free',
-            ]);
-            $user->org_id = $org->id;
+            // Check if they already have an organization with the same name before creating
+            $existingOrg = Organization::where('name', $user->name . "'s Business")->first();
+            
+            if ($existingOrg) {
+                $user->org_id = $existingOrg->id;
+            } else {
+                // First time login? Auto-create their org!
+                $org = Organization::create([
+                    'name' => $user->name . "'s Business",
+                    'plan_tier' => 'free',
+                ]);
+                $user->org_id = $org->id;
+            }
             $user->save();
         }
 
@@ -46,8 +53,12 @@ class WhatsAppAuthController extends Controller
         if ($config) {
             $wabaId = $config->waba_id;
             
-            // First check if we have data cached in the DB
-            if ($config->waba_name || $config->business_name) {
+            // We consider the config "complete" only if we have at least these key names.
+            // If anything is missing or 'N/A', we should try to re-fetch from Meta.
+            $isCacheComplete = ($config->waba_name && $config->waba_name !== 'N/A') && 
+                               ($config->phone_number && $config->phone_number !== 'N/A');
+
+            if ($isCacheComplete) {
                 $businessName = $config->business_name;
                 $businessId = $config->business_id;
                 $wabaName = $config->waba_name;
@@ -96,15 +107,17 @@ class WhatsAppAuthController extends Controller
                         }
                     }
                     
-                    // Save the fetched info for future loads so it doesn't break if token expires
-                    if ($wabaName || $phoneNumber) {
-                        $config->update([
-                            'business_name' => $businessName,
-                            'business_id' => $businessId,
-                            'waba_name' => $wabaName,
-                            'phone_number' => $phoneNumber,
-                            'phone_status' => $phoneStatus,
-                        ]);
+                    // Save the fetched info for future loads so it doesn't break if token expires.
+                    // IMPORTANT: We only update fields that were successfully retrieved to avoid clearing existing data.
+                    $updateData = [];
+                    if ($businessName) $updateData['business_name'] = $businessName;
+                    if ($businessId) $updateData['business_id'] = $businessId;
+                    if ($wabaName) $updateData['waba_name'] = $wabaName;
+                    if ($phoneNumber) $updateData['phone_number'] = $phoneNumber;
+                    if ($phoneStatus) $updateData['phone_status'] = $phoneStatus;
+
+                    if (!empty($updateData)) {
+                        $config->update($updateData);
                     }
 
                 } catch (\Exception $e) {
@@ -422,6 +435,16 @@ class WhatsAppAuthController extends Controller
                 'phone_number' => $phoneNumberDisplay,
                 'phone_status' => $phoneStatus,
             ]);
+
+            // Attempt to refresh Business/WABA names immediately after switching numbers
+            try {
+                $wabaRes = Http::withToken($config->access_token)->get("https://graph.facebook.com/v18.0/{$config->waba_id}?fields=name");
+                if ($wabaRes->successful()) {
+                    $config->update(['waba_name' => $wabaRes->json()['name'] ?? $config->waba_name]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('Silent failure refreshing WABA name after number selection: ' . $e->getMessage());
+            }
 
             return response()->json(['success' => true, 'message' => 'Phone number activated successfully!']);
         } catch (\Exception $e) {

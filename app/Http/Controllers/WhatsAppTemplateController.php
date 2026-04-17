@@ -32,11 +32,15 @@ class WhatsAppTemplateController extends Controller
                     $templates = $response->json()['data'] ?? [];
                 } else {
                     $error = json_decode($response->body(), true)['error']['message'] ?? 'Failed to fetch templates from Meta.';
-                    Log::error('Template Fetch Failed: ' . $response->body());
+                    Log::error('Template Fetch Failed', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                        'waba_id' => $config->waba_id
+                    ]);
                 }
             } catch (\Exception $e) {
                 $error = 'Server error occurred while fetching templates.';
-                Log::error('Template Fetch Error: ' . $e->getMessage());
+                Log::error('Template Fetch Exception: ' . $e->getMessage());
             }
         }
 
