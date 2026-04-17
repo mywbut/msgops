@@ -337,7 +337,7 @@ class WhatsAppAuthController extends Controller
                     'waba_name' => $wabaName,
                     'phone_number' => $phoneNumberDisplay,
                     'phone_status' => $phoneStatus,
-                    'is_subscribed' => (bool)$isSubscribed,
+                    'is_subscribed' => \Illuminate\Support\Facades\DB::raw($isSubscribed ? 'TRUE' : 'FALSE'),
                 ]
             );
             return redirect()->route('whatsapp.connect')->with('success', 'Successfully connected your WhatsApp Business number!');
