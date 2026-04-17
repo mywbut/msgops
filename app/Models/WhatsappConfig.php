@@ -11,6 +11,11 @@ class WhatsappConfig extends Model
 
     public $timestamps = false;
 
+    protected $casts = [
+        'is_subscribed' => 'boolean',
+        'is_automation_enabled' => 'boolean',
+    ];
+
     protected $fillable = [
         'org_id',
         'phone_number_id',
