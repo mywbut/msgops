@@ -113,6 +113,52 @@ class WhatsAppAuthController extends Controller
             }
         }
 
+        // Fetch Meta Health and Usage if connected
+        $dailyLimit = 250;
+        $currentUsage = 0;
+        $tierName = 'TIER 1';
+        $accountQuality = 'High';
+
+        if ($config && $config->phone_number_id && $config->access_token) {
+            // Calculate actual usage (Unique contacts in last 24 hours)
+            $currentUsage = \App\Models\Message::where('org_id', $user->org_id)
+                ->where('direction', 'outbound')
+                ->where('created_at', '>=', now()->subHours(24))
+                ->distinct('contact_id')
+                ->count();
+
+            // Fetch Real Meta Health Data with caching
+            $cacheKey = "meta_health_v2_{$config->phone_number_id}";
+            $metaApiData = \Illuminate\Support\Facades\Cache::remember($cacheKey, now()->addHours(24), function () use ($config) {
+                try {
+                    $response = Http::withToken($config->access_token)
+                        ->get("https://graph.facebook.com/v18.0/{$config->phone_number_id}?fields=messaging_limit_tier,quality_rating");
+
+                    if ($response->successful()) {
+                        return $response->json();
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Connect Meta API Error: " . $e->getMessage());
+                }
+                return null;
+            });
+
+            if ($metaApiData) {
+                $tierMap = [
+                    'TIER_250' => 250,
+                    'TIER_2K' => 2000,
+                    'TIER_10K' => 10000,
+                    'TIER_100K' => 100000,
+                    'TIER_UNLIMITED' => 1000000,
+                ];
+                
+                $tierRaw = $metaApiData['messaging_limit_tier'] ?? 'TIER_250';
+                $dailyLimit = $tierMap[$tierRaw] ?? 250;
+                $tierName = str_replace('_', ' ', $tierRaw);
+                $accountQuality = $metaApiData['quality_rating'] ?? 'High';
+            }
+        }
+
         return Inertia::render('WhatsApp/Connect', [
             'metaAppId' => env('META_APP_ID', '911152584947331'),
             'metaConfigId' => env('META_CONFIG_ID', '1592135015238479'),
@@ -124,8 +170,10 @@ class WhatsAppAuthController extends Controller
             'wabaId' => $wabaId ?? 'N/A',
             'phoneNumber' => $phoneNumber ?? 'N/A',
             'phoneStatus' => $phoneStatus ?? 'Active',
-            'messagingLimit' => '1,000 conversations per 24 hours',
-            'accountQuality' => 'High',
+            'dailyLimit' => $dailyLimit,
+            'currentUsage' => $currentUsage,
+            'tierName' => $tierName,
+            'accountQuality' => $accountQuality,
             'flashError' => session('error'),
             'flashSuccess' => session('success'),
         ]);

@@ -6,7 +6,7 @@ export default function Connect() {
     const { 
         metaAppId, metaConfigId, isConnected, phoneNumberId, 
         businessName, businessId, wabaName, wabaId, phoneNumber, phoneStatus,
-        messagingLimit, accountQuality,
+        dailyLimit, currentUsage, tierName, accountQuality,
         flashError, flashSuccess 
     } = usePage().props;
     
@@ -153,15 +153,15 @@ export default function Connect() {
                                             <div className="p-3 bg-indigo-50 rounded-2xl text-[#4F46E5]">
                                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                             </div>
-                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">TIER 1</span>
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{tierName || 'TIER 1'}</span>
                                         </div>
                                         <h4 className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Messaging Limit</h4>
-                                        <div className="text-2xl font-bold text-[#0B1F2A] mb-2">{messagingLimit}</div>
-                                        <p className="text-xs text-gray-400">Conversations initiated by business in a rolling 24-hour period.</p>
+                                        <div className="text-2xl font-bold text-[#0B1F2A] mb-2">{dailyLimit?.toLocaleString()} unique contacts</div>
+                                        <p className="text-xs text-gray-400">Total unique numbers reachable in a rolling 24-hour period.</p>
                                     </div>
                                     <div className="mt-6 pt-6 border-t border-gray-50 flex justify-between items-center text-xs">
                                         <span className="text-gray-500">Current Usage</span>
-                                        <span className="font-bold text-[#25D366]">0 / 1,000</span>
+                                        <span className="font-bold text-[#25D366]">{currentUsage?.toLocaleString()} / {dailyLimit?.toLocaleString()}</span>
                                     </div>
                                 </div>
 
@@ -169,13 +169,19 @@ export default function Connect() {
                                 <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
                                     <div>
                                         <div className="flex justify-between items-start mb-6">
-                                            <div className="p-3 bg-green-50 rounded-2xl text-[#25D366]">
+                                            <div className={`p-3 rounded-2xl ${accountQuality === 'Low' ? 'bg-red-50 text-red-500' : 'bg-green-50 text-[#25D366]'}`}>
                                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             </div>
-                                            <span className="px-2 py-0.5 bg-green-50 text-[#25D366] text-[10px] font-bold rounded shadow-sm border border-green-100 uppercase">HEALTHY</span>
+                                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded shadow-sm border uppercase ${
+                                                accountQuality === 'High' ? 'bg-green-50 text-[#25D366] border-green-100' : 
+                                                accountQuality === 'Medium' ? 'bg-amber-50 text-amber-500 border-amber-100' : 
+                                                'bg-red-50 text-red-500 border-red-100'
+                                            }`}>
+                                                {accountQuality === 'High' ? 'HEALTHY' : accountQuality === 'Medium' ? 'WARNING' : 'POOR'}
+                                            </span>
                                         </div>
                                         <h4 className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Account Quality</h4>
-                                        <div className="text-2xl font-bold text-[#0B1F2A] mb-2">{accountQuality}</div>
+                                        <div className="text-2xl font-bold text-[#0B1F2A] mb-2">{accountQuality || 'High'}</div>
                                         <p className="text-xs text-gray-400">Based on how recipients have received your messages over the past 7 days.</p>
                                     </div>
                                     <div className="mt-6 pt-6 border-t border-gray-50 text-center">
