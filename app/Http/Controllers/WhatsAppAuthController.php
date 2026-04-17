@@ -337,7 +337,7 @@ class WhatsAppAuthController extends Controller
                     'waba_name' => $wabaName,
                     'phone_number' => $phoneNumberDisplay,
                     'phone_status' => $phoneStatus,
-                    'is_subscribed' => $isSubscribed ? 'true' : 'false',
+                    'is_subscribed' => (bool)$isSubscribed,
                 ]
             );
             return redirect()->route('whatsapp.connect')->with('success', 'Successfully connected your WhatsApp Business number!');
@@ -379,9 +379,18 @@ class WhatsAppAuthController extends Controller
             $response = Http::withToken($config->access_token)
                 ->get("https://graph.facebook.com/v18.0/{$config->waba_id}/phone_numbers");
 
-            if ($response->failed()) {
+            if (!$response->successful()) {
+                $errorData = $response->json();
+                $errorMessage = $errorData['error']['message'] ?? 'Failed to fetch phone numbers from Meta.';
+                
                 Log::error('Meta Fetch Phones Failed: ' . $response->body());
-                return response()->json(['error' => 'Failed to fetch phone numbers from Meta.'], 500);
+
+                // If token is invalid or user logged out
+                if ($response->status() === 401 || (isset($errorData['error']['code']) && $errorData['error']['code'] == 190)) {
+                    return response()->json(['error' => 'Your WhatsApp session has expired. Please disconnect and reconnect your account.'], 401);
+                }
+
+                return response()->json(['error' => $errorMessage], $response->status());
             }
 
             return response()->json($response->json());
