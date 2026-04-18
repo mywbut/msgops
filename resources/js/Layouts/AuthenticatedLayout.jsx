@@ -19,22 +19,30 @@ export default function AuthenticatedLayout({ header, children }) {
 
     useEffect(() => {
         const fetchUnread = async () => {
-            // Only poll if not on the inbox page to avoid double alerts
-            if (route().current('whatsapp.inbox')) return;
+            const urlParams = new URL(window.location.href).searchParams;
+            const currentContactId = urlParams.get('contactId');
 
             try {
                 const response = await axios.get(route('api.whatsapp.unread-notifications'));
                 const { unread_total, latest_message } = response.data;
 
                 if (unread_total > prevUnreadCountRef.current && latest_message) {
-                    // Play sound
-                    incomingSoundRef.current.play().catch(e => console.log('Audio play blocked:', e));
-                    
-                    // Show notification toast
-                    setNotification(latest_message);
-                    
-                    // Auto-hide after 10 seconds
-                    setTimeout(() => setNotification(null), 10000);
+                    // Only show notification if:
+                    // 1. User is NOT on the inbox page
+                    // 2. User IS on inbox page but the message is from a DIFFERENT contact than the one selected
+                    const isOtherContact = latest_message.contact_id !== currentContactId;
+                    const shouldNotify = !route().current('whatsapp.inbox') || isOtherContact;
+
+                    if (shouldNotify) {
+                        // Play sound
+                        incomingSoundRef.current.play().catch(e => console.log('Audio play blocked:', e));
+                        
+                        // Show notification toast
+                        setNotification(latest_message);
+                        
+                        // Auto-hide after 10 seconds
+                        setTimeout(() => setNotification(null), 10000);
+                    }
                 }
 
                 setUnreadCount(unread_total);
