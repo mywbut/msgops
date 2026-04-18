@@ -70,8 +70,8 @@ export default function TeamInbox({ selectedContactId, templates = [] }) {
     const textAreaRef = useRef(null);
     const emojiPickerRef = useRef(null);
     const lastMessageIdRef = useRef(null);
-    const incomingSoundRef = useRef(new Audio('https://cdn.jsdelivr.net/npm/whatsapp-notification-sound@1.0.0/notification.mp3'));
-    const outgoingSoundRef = useRef(new Audio('https://raw.githubusercontent.com/Ansh-Rathod/WhatsApp-Clone-React/master/public/whatsapp_outbound.mp3'));
+    const incomingSoundRef = useRef(new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'));
+    const outgoingSoundRef = useRef(new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3'));
 
     const scrollToBottom = (behavior = "smooth") => {
         messagesEndRef.current?.scrollIntoView({ behavior });
