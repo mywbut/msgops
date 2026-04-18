@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class TeamInboxController extends Controller
 {
@@ -63,7 +64,7 @@ class TeamInboxController extends Controller
 
                 $unreadCount = Message::where('contact_id', $contact->id)
                     ->where('direction', 'inbound')
-                    ->where('is_read', false)
+                    ->where('is_read', DB::raw('FALSE'))
                     ->count();
 
                 return [
@@ -90,8 +91,8 @@ class TeamInboxController extends Controller
         // Mark all inbound messages as read for this contact
         Message::where('contact_id', $contact->id)
             ->where('direction', 'inbound')
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
+            ->where('is_read', DB::raw('FALSE'))
+            ->update(['is_read' => DB::raw('TRUE')]);
 
         $messages = Message::where('contact_id', $contact->id)
             ->orderBy('created_at', 'asc')
@@ -136,12 +137,12 @@ class TeamInboxController extends Controller
         
         $unreadTotal = Message::where('org_id', $user->org_id)
             ->where('direction', 'inbound')
-            ->where('is_read', false)
+            ->where('is_read', DB::raw('FALSE'))
             ->count();
             
         $latestUnread = Message::where('org_id', $user->org_id)
             ->where('direction', 'inbound')
-            ->where('is_read', false)
+            ->where('is_read', DB::raw('FALSE'))
             ->with('contact')
             ->orderBy('created_at', 'desc')
             ->first();

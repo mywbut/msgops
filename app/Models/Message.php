@@ -22,11 +22,13 @@ class Message extends Model
         'status',
         'sender_type',
         'error',
+        'is_read',
     ];
 
     protected $casts = [
         'content' => 'array',
         'error' => 'array',
+        'is_read' => 'boolean',
     ];
 
     public function organization()
