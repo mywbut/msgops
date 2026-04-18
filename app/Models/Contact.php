@@ -23,6 +23,16 @@ class Contact extends Model
         'tags' => 'array',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($contact) {
+            if (!$contact->last_message_at) {
+                $contact->last_message_at = now();
+            }
+        });
+    }
+
     public function organization()
     {
         return $this->belongsTo(Organization::class, 'org_id');
