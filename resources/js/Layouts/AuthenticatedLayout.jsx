@@ -2,14 +2,53 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
-import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Link, usePage, router } from '@inertiajs/react';
+import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import { MessageSquare, Bell, X } from 'lucide-react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [notification, setNotification] = useState(null);
+    const prevUnreadCountRef = useRef(0);
+    const incomingSoundRef = useRef(new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3'));
+
+    useEffect(() => {
+        const fetchUnread = async () => {
+            // Only poll if not on the inbox page to avoid double alerts
+            if (route().current('whatsapp.inbox')) return;
+
+            try {
+                const response = await axios.get(route('api.whatsapp.unread-notifications'));
+                const { unread_total, latest_message } = response.data;
+
+                if (unread_total > prevUnreadCountRef.current && latest_message) {
+                    // Play sound
+                    incomingSoundRef.current.play().catch(e => console.log('Audio play blocked:', e));
+                    
+                    // Show notification toast
+                    setNotification(latest_message);
+                    
+                    // Auto-hide after 10 seconds
+                    setTimeout(() => setNotification(null), 10000);
+                }
+
+                setUnreadCount(unread_total);
+                prevUnreadCountRef.current = unread_total;
+            } catch (error) {
+                console.error('Error fetching unread notifications:', error);
+            }
+        };
+
+        const interval = setInterval(fetchUnread, 30000); // 30 seconds
+        fetchUnread(); // Initial check
+
+        return () => clearInterval(interval);
+    }, []);
 
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -267,6 +306,39 @@ export default function AuthenticatedLayout({ header, children }) {
             )}
 
             <main>{children}</main>
+
+            {/* Global Notification Toast */}
+            {notification && (
+                <div className="fixed bottom-8 right-8 z-[100] animate-in slide-in-from-right duration-500">
+                    <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 p-1 flex items-stretch overflow-hidden max-w-sm">
+                        <div className="bg-[#25D366] w-2 rounded-l-2xl"></div>
+                        <div className="flex-1 p-5">
+                            <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-[#25D366]/10 rounded-xl text-[#25D366]">
+                                        <MessageSquare className="w-4 h-4" />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">New Message</span>
+                                </div>
+                                <button onClick={() => setNotification(null)} className="text-gray-300 hover:text-gray-500 transition-colors">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                            <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-1">{notification.contact_name}</h4>
+                            <p className="text-xs text-gray-500 line-clamp-2 mb-4 leading-relaxed">
+                                {notification.snippet}
+                            </p>
+                            <Link 
+                                href={route('whatsapp.inbox', { contactId: notification.contact_id })}
+                                onClick={() => setNotification(null)}
+                                className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#25D366] hover:gap-3 transition-all"
+                            >
+                                View Chat <Bell className="w-3 h-3" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

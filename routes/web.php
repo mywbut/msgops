@@ -47,6 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/whatsapp/inbox', [\App\Http\Controllers\TeamInboxController::class, 'index'])->name('whatsapp.inbox');
     Route::get('/api/whatsapp/conversations', [\App\Http\Controllers\TeamInboxController::class, 'getConversations'])->name('api.whatsapp.conversations');
     Route::get('/api/whatsapp/messages/{contactId}', [\App\Http\Controllers\TeamInboxController::class, 'getMessages'])->name('api.whatsapp.messages');
+    Route::get('/api/whatsapp/unread-notifications', [\App\Http\Controllers\TeamInboxController::class, 'getUnreadNotifications'])->name('api.whatsapp.unread-notifications');
 
     // WhatsApp Connect Route
     Route::get('/whatsapp/connect', [WhatsAppAuthController::class, 'showConnectPage'])->name('whatsapp.connect');

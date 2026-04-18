@@ -61,6 +61,11 @@ class TeamInboxController extends Controller
                     $isExpired = Carbon::parse($lastIncoming->created_at)->addHours(24)->isPast();
                 }
 
+                $unreadCount = Message::where('contact_id', $contact->id)
+                    ->where('direction', 'inbound')
+                    ->where('is_read', false)
+                    ->count();
+
                 return [
                     'id' => $contact->id,
                     'name' => $contact->name ?? 'Unknown',
@@ -68,7 +73,7 @@ class TeamInboxController extends Controller
                     'last_message' => $lastMsg ? ($lastMsg->content['body'] ?? 'Media/Template') : null,
                     'last_message_time' => $lastMsg ? Carbon::parse($lastMsg->created_at)->diffForHumans() : null,
                     'is_expired' => $isExpired,
-                    'unread_count' => 0, // TODO: Implement unread logic if needed
+                    'unread_count' => $unreadCount,
                 ];
             });
 
@@ -81,6 +86,12 @@ class TeamInboxController extends Controller
     {
         $user = $request->user();
         $contact = Contact::where('id', $contactId)->where('org_id', $user->org_id)->firstOrFail();
+
+        // Mark all inbound messages as read for this contact
+        Message::where('contact_id', $contact->id)
+            ->where('direction', 'inbound')
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
 
         $messages = Message::where('contact_id', $contact->id)
             ->orderBy('created_at', 'asc')
@@ -116,6 +127,33 @@ class TeamInboxController extends Controller
             'messages' => $messages,
             'is_expired' => $isExpired,
             'expires_at' => $expiresAt
+        ]);
+    }
+
+    public function getUnreadNotifications(Request $request)
+    {
+        $user = $request->user();
+        
+        $unreadTotal = Message::where('org_id', $user->org_id)
+            ->where('direction', 'inbound')
+            ->where('is_read', false)
+            ->count();
+            
+        $latestUnread = Message::where('org_id', $user->org_id)
+            ->where('direction', 'inbound')
+            ->where('is_read', false)
+            ->with('contact')
+            ->orderBy('created_at', 'desc')
+            ->first();
+            
+        return response()->json([
+            'unread_total' => $unreadTotal,
+            'latest_message' => $latestUnread ? [
+                'id' => $latestUnread->id,
+                'contact_name' => $latestUnread->contact->name ?? $latestUnread->contact->phone_number,
+                'contact_id' => $latestUnread->contact_id,
+                'snippet' => $latestUnread->content['body'] ?? 'New Media/Template'
+            ] : null
         ]);
     }
 }
