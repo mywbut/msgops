@@ -61,11 +61,22 @@ export default function Create({ isConnected, flashError, initialTemplate, isEdi
         const variables = [...new Set(data.body.match(/\{\{[^}]+\}\}/g) || [])];
         
         // Map user-provided samples in the correct order (1, 2, 3...)
-        const examples = variables.map(v => data.body_examples[v] || "Sample Value");
-        
-        variables.forEach((variable, index) => {
-            bodyWithIndices = bodyWithIndices.replaceAll(variable, `{{${index + 1}}}`);
+        // and create a mapping for safe replacement
+        const varMap = {};
+        const examples = variables.map((v, i) => {
+            const index = i + 1;
+            varMap[v] = `{{${index}}}`;
+            return data.body_examples[v] || "Sample Value";
         });
+        
+        // Safe replacement: use a single pass with a regex to avoid "clobbering" 
+        // (where replacing {{1}} with {{2}} causes a later loop to replace it again)
+        if (variables.length > 0) {
+            // Escape regex special characters in variables and join with pipe
+            const escapedVars = variables.map(v => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            const regex = new RegExp(escapedVars.join('|'), 'g');
+            bodyWithIndices = data.body.replace(regex, (matched) => varMap[matched]);
+        }
 
         const submissionData = {
             ...data,

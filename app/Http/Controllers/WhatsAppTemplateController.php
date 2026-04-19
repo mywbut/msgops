@@ -261,6 +261,7 @@ class WhatsAppTemplateController extends Controller
             ];
 
             Log::info('Meta Template Creation Payload:', $payload);
+            Log::info('Payload Components:', ['components' => $components]);
 
             $response = Http::withToken($config->access_token)
                 ->post("https://graph.facebook.com/v18.0/{$config->waba_id}/message_templates", $payload);
