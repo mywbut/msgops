@@ -168,6 +168,7 @@ class WhatsAppTemplateController extends Controller
             'header_type' => 'nullable|in:NONE,TEXT,IMAGE,DOCUMENT,VIDEO',
             'header_text' => 'nullable|string|max:60',
             'body' => 'required|string|max:1024',
+            'body_examples' => 'nullable|array',
             'footer' => 'nullable|string|max:60',
             'buttons' => 'nullable|array|max:10',
         ]);
@@ -255,8 +256,11 @@ class WhatsAppTemplateController extends Controller
                 'name' => $request->name,
                 'language' => $request->language,
                 'category' => $request->category,
+                'allow_category_change' => true,
                 'components' => $components,
             ];
+
+            Log::info('Meta Template Creation Payload:', $payload);
 
             $response = Http::withToken($config->access_token)
                 ->post("https://graph.facebook.com/v18.0/{$config->waba_id}/message_templates", $payload);
@@ -267,7 +271,13 @@ class WhatsAppTemplateController extends Controller
 
             Log::error('Template Creation Failed: ' . $response->body());
             $errorData = $response->json();
-            $errorMsg = $errorData['error']['message'] ?? 'Failed to create template on Meta.';
+            
+            $errorMsg = 'Failed to create template on Meta.';
+            if (isset($errorData['error']['message'])) {
+                $errorMsg = $errorData['error']['message'];
+            } elseif ($response->body()) {
+                $errorMsg = $response->body();
+            }
             
             return redirect()->back()->with('error', $errorMsg)->withInput();
             
