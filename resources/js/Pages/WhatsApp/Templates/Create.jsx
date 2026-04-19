@@ -136,7 +136,7 @@ export default function Create({ isConnected, flashError, initialTemplate, isEdi
             });
 
             if (response.data.success) {
-                setData('header_handle', response.data.url);
+                setData('header_handle', response.data.handle);
             }
         } catch (error) {
             console.error('Upload failed:', error);

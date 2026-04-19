@@ -196,7 +196,7 @@ class WhatsAppTemplateController extends Controller
                 // Add example for media headers (Meta requirement)
                 if (in_array($request->header_type, ['IMAGE', 'VIDEO', 'DOCUMENT']) && $request->header_handle) {
                     $header['example'] = [
-                        'header_url' => [$request->header_handle]
+                        'header_handle' => [$request->header_handle]
                     ];
                 }
                 
@@ -291,24 +291,72 @@ class WhatsAppTemplateController extends Controller
             'file' => 'required|file|max:16384', // 16MB max
         ]);
 
+        $user = $request->user();
+        $config = WhatsappConfig::where('org_id', $user->org_id)->first();
+
+        if (!$config || !$config->access_token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'WhatsApp connection not found. Please connect your account first.'
+            ], 400);
+        }
+
         try {
             $file = $request->file('file');
             $extension = $file->getClientOriginalExtension();
+            $mimeType = $file->getMimeType();
+            $fileSize = $file->getSize();
             $filename = 'sample_' . time() . '_' . uniqid() . '.' . $extension;
             
-            // Store in public/whatsapp_samples
+            // 1. Store locally for preview/backup
             $path = $file->storeAs('whatsapp_samples', $filename, 'public');
             $url = url(Storage::url($path));
 
+            // 2. Upload to Meta to get the handle (h)
+            // Step A: Create Upload Session
+            $appId = env('META_APP_ID', '911152584947331');
+            $sessionResponse = Http::withToken($config->access_token)
+                ->post("https://graph.facebook.com/v18.0/{$appId}/uploads", [
+                    'file_length' => $fileSize,
+                    'file_type' => $mimeType,
+                    'access_token' => $config->access_token,
+                ]);
+
+            if ($sessionResponse->failed()) {
+                Log::error('Meta Upload Session Failed: ' . $sessionResponse->body());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to initialize Meta upload session.'
+                ], $sessionResponse->status());
+            }
+
+            $sessionId = $sessionResponse->json()['id'];
+
+            // Step B: Upload File Content
+            $uploadResponse = Http::withToken($config->access_token)
+                ->withBody(file_get_contents($file->getRealPath()), $mimeType)
+                ->post("https://graph.facebook.com/v18.0/{$sessionId}");
+
+            if ($uploadResponse->failed()) {
+                Log::error('Meta File Upload Failed: ' . $uploadResponse->body());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to upload media content to Meta.'
+                ], $uploadResponse->status());
+            }
+
+            $handle = $uploadResponse->json()['h'];
+
             return response()->json([
                 'success' => true,
-                'url' => $url
+                'url' => $url,
+                'handle' => $handle
             ]);
         } catch (\Exception $e) {
             Log::error('Media Upload Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to upload media sample.'
+                'message' => 'Failed to upload media sample: ' . $e->getMessage()
             ], 500);
         }
     }
